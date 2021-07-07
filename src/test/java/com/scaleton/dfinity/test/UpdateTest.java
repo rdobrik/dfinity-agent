@@ -36,6 +36,7 @@ import com.scaleton.dfinity.agent.Agent;
 import com.scaleton.dfinity.agent.AgentBuilder;
 import com.scaleton.dfinity.agent.AgentError;
 import com.scaleton.dfinity.agent.NonceFactory;
+import com.scaleton.dfinity.agent.ProxyBuilder;
 import com.scaleton.dfinity.agent.ReplicaTransport;
 import com.scaleton.dfinity.agent.RequestStatusResponse;
 import com.scaleton.dfinity.agent.UpdateBuilder;
@@ -154,6 +155,20 @@ public class UpdateTest extends MockTest {
 
 					Assertions.assertEquals(outArgs.getArgs().get(0).getValue().toString(), "Hello, " + value + "!");
 				}
+				
+				// test ProxyBuilder
+				
+				//Hello hello = ProxyBuilder.create(agent, Principal.fromString(TestProperties.CANISTER_ID)).getProxy(Hello.class);
+				
+				Hello hello = ProxyBuilder.create().getProxy(Hello.class);
+				
+				CompletableFuture<String> proxyResponse = hello.greet(value);
+				
+				if (TestProperties.FORWARD) {
+					String output = proxyResponse.get();
+					LOG.info(output);
+					Assertions.assertEquals(output,"Hello, " + value + "!");
+				}
 
 			} catch (Throwable ex) {
 				LOG.error(ex.getLocalizedMessage(), ex);
@@ -161,13 +176,13 @@ public class UpdateTest extends MockTest {
 			}
 
 		} catch (URISyntaxException e) {
-			LOG.info(e.getLocalizedMessage(), e);
+			LOG.error(e.getLocalizedMessage(), e);
 			Assertions.fail(e.getMessage());
 		} catch (AgentError e) {
-			LOG.info(e.getLocalizedMessage(), e);
+			LOG.error(e.getLocalizedMessage(), e);
 			Assertions.fail(e.getMessage());
 		} catch (NoSuchAlgorithmException e) {
-			LOG.info(e.getLocalizedMessage(), e);
+			LOG.error(e.getLocalizedMessage(), e);
 			Assertions.fail(e.getMessage());
 		} finally {
 			mockServerClient.stop();

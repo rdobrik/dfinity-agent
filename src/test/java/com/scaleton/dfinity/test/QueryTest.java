@@ -39,6 +39,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.scaleton.dfinity.agent.Agent;
 import com.scaleton.dfinity.agent.AgentBuilder;
 import com.scaleton.dfinity.agent.AgentError;
+import com.scaleton.dfinity.agent.ProxyBuilder;
 import com.scaleton.dfinity.agent.QueryBuilder;
 import com.scaleton.dfinity.agent.ReplicaTransport;
 import com.scaleton.dfinity.agent.http.ReplicaHttpTransport;
@@ -116,13 +117,15 @@ public class QueryTest extends MockTest{
 				LOG.info(outArgs.getArgs().get(0).getValue().toString());
 				Assertions.assertEquals(Integer.valueOf(intValue + 1),outArgs.getArgs().get(0).getValue());
 			} catch (Throwable ex) {
-				LOG.info(ex.getLocalizedMessage(), ex);
+				LOG.debug(ex.getLocalizedMessage(), ex);
 				Assertions.fail(ex.getLocalizedMessage());
 			}			
 
 			args = new ArrayList<IDLValue>();
+			
+			String value = "x";
 
-			args.add(IDLValue.create(new String("x")));
+			args.add(IDLValue.create(value));
 
 			args.add(IDLValue.create(new Integer(1)));
 
@@ -139,9 +142,9 @@ public class QueryTest extends MockTest{
 				IDLArgs outArgs = IDLArgs.fromBytes(output);
 
 				LOG.info(outArgs.getArgs().get(0).getValue());
-				Assertions.assertEquals("Hello, x!",outArgs.getArgs().get(0).getValue());
+				Assertions.assertEquals("Hello, " + value + "!",outArgs.getArgs().get(0).getValue());
 			} catch (Throwable ex) {
-				LOG.info(ex.getLocalizedMessage(), ex);
+				LOG.debug(ex.getLocalizedMessage(), ex);
 				Assertions.fail(ex.getLocalizedMessage());
 			}
 			
@@ -166,7 +169,7 @@ public class QueryTest extends MockTest{
 				LOG.info(outArgs.getArgs().get(0).getValue().toString());
 				Assertions.assertSame(Boolean.TRUE,outArgs.getArgs().get(0).getValue());
 			} catch (Throwable ex) {
-				LOG.info(ex.getLocalizedMessage(), ex);
+				LOG.debug(ex.getLocalizedMessage(), ex);
 				Assertions.fail(ex.getLocalizedMessage());
 			}
 			
@@ -192,7 +195,7 @@ public class QueryTest extends MockTest{
 				LOG.info(outArgs.getArgs().get(0).getValue().toString());
 				Assertions.assertEquals(doubleValue + 1,outArgs.getArgs().get(0).getValue());
 			} catch (Throwable ex) {
-				LOG.info(ex.getLocalizedMessage(), ex);
+				LOG.debug(ex.getLocalizedMessage(), ex);
 				Assertions.fail(ex.getLocalizedMessage());
 			}			
 			
@@ -206,7 +209,7 @@ public class QueryTest extends MockTest{
 				LOG.info(output.toString());
 				Assertions.fail(output.toString());
 			} catch (Throwable ex) {
-				LOG.info(ex.getLocalizedMessage(), ex);
+				LOG.debug(ex.getLocalizedMessage(), ex);
 				Assertions.assertEquals(ex.getCause().getMessage(),
 						"The Replica returned an error: code 3, message: \"IC0302: Canister rrkah-fqaaa-aaaaa-aaaaq-cai has no query method 'hello'\"");
 
@@ -232,21 +235,35 @@ public class QueryTest extends MockTest{
 				LOG.info(outArgs.getArgs().get(0).getValue().toString());
 				Assertions.assertEquals(Integer.valueOf(intValue + 1),outArgs.getArgs().get(0).getValue());
 			} catch (Throwable ex) {
-				LOG.info(ex.getLocalizedMessage(), ex);
+				LOG.debug(ex.getLocalizedMessage(), ex);
 				Assertions.fail(ex.getLocalizedMessage());
 			}
 			
+			// test ProxyBuilder
+			
+			//Hello hello = ProxyBuilder.create(agent, Principal.fromString(TestProperties.CANISTER_ID)).getProxy(Hello.class);
+			
+			Hello hello = ProxyBuilder.create().getProxy(Hello.class);
+			
+			String result = hello.peek(value, intValue);
+			
+			LOG.info(result);
+			Assertions.assertEquals("Hello, " + value + "!",result);
+			
+			Integer intResult = hello.getInt(intValue);
+			
+			LOG.info(intResult.toString());
+			
+			Assertions.assertEquals(Integer.valueOf(intValue + 1),intResult);
+			
 		} catch (URISyntaxException e) {
-			LOG.info(e.getLocalizedMessage(), e);
+			LOG.error(e.getLocalizedMessage(), e);
 			Assertions.fail(e.getMessage());		
 		} catch (AgentError e) {
-			LOG.info(e.getLocalizedMessage(), e);
+			LOG.error(e.getLocalizedMessage(), e);
 			Assertions.fail(e.getMessage());
-			// } catch (JsonProcessingException e) {
-			// LOG.info(e.getLocalizedMessage(), e);
-			// fail(e.getMessage());
 		} catch (NoSuchAlgorithmException e) {
-			LOG.info(e.getLocalizedMessage(), e);
+			LOG.error(e.getLocalizedMessage(), e);
 			Assertions.fail(e.getMessage());	
 		} finally {
 			mockServerClient.stop();
