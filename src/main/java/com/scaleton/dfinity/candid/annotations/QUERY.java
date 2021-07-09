@@ -26,7 +26,6 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RUNTIME)
 @Target(METHOD)
-public @interface Method {
+public @interface QUERY {
 	public String name()  default "";
-	public MethodType type();
 }

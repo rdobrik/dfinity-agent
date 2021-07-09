@@ -10,8 +10,8 @@ import com.scaleton.dfinity.agent.annotations.EffectiveCanister;
 import com.scaleton.dfinity.agent.annotations.Transport;
 import com.scaleton.dfinity.agent.annotations.Waiter;
 import com.scaleton.dfinity.candid.annotations.Argument;
-import com.scaleton.dfinity.candid.annotations.Method;
-import com.scaleton.dfinity.candid.annotations.MethodType;
+import com.scaleton.dfinity.candid.annotations.QUERY;
+import com.scaleton.dfinity.candid.annotations.UPDATE;
 import com.scaleton.dfinity.candid.types.Type;
 
 @Agent(identity = @Identity(type = IdentityType.BASIC, pem_file = "./src/test/resources/Ed25519_identity.pem"), transport = @Transport(url = "http://localhost:8001"))
@@ -19,13 +19,13 @@ import com.scaleton.dfinity.candid.types.Type;
 @EffectiveCanister(id = "rrkah-fqaaa-aaaaa-aaaaq-cai")
 public interface Hello {
 	
-	@Method(type = MethodType.QUERY, name="peek")
+	@QUERY
 	public String peek(@Argument(type = Type.TEXT)String name, @Argument(type = Type.INT) Integer value);
 	
-	@Method(type = MethodType.QUERY, name="echoInt")
+	@QUERY(name="echoInt")
 	public Integer getInt(Integer value);	
 	
-	@Method(type = MethodType.UPDATE, name="greet")
+	@UPDATE(name="greet")
 	@Waiter(timeout = 30)
 	public CompletableFuture<String> greet(@Argument(type = Type.TEXT)String name);
 

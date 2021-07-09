@@ -14,8 +14,8 @@
  * limitations under the License.
 */
 
-package com.scaleton.dfinity.candid.annotations;
+package com.scaleton.dfinity.agent;
 
-public enum MethodType {
+enum MethodType {
 	QUERY,UPDATE
 }

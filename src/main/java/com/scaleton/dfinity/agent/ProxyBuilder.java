@@ -48,6 +48,8 @@ import com.scaleton.dfinity.agent.identity.Identity;
 import com.scaleton.dfinity.agent.identity.PemError;
 import com.scaleton.dfinity.agent.identity.Secp256k1Identity;
 import com.scaleton.dfinity.candid.annotations.Argument;
+import com.scaleton.dfinity.candid.annotations.QUERY;
+import com.scaleton.dfinity.candid.annotations.UPDATE;
 import com.scaleton.dfinity.candid.parser.IDLArgs;
 import com.scaleton.dfinity.candid.parser.IDLValue;
 import com.scaleton.dfinity.candid.types.Type;
@@ -249,14 +251,31 @@ public final class ProxyBuilder {
 		@Override
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
-			if (method.isAnnotationPresent(com.scaleton.dfinity.candid.annotations.Method.class)) {
-				com.scaleton.dfinity.candid.annotations.Method methodAnnotation = method
-						.getAnnotation(com.scaleton.dfinity.candid.annotations.Method.class);
+			if (method.isAnnotationPresent(QUERY.class) || method.isAnnotationPresent(UPDATE.class)) {			
+				MethodType methodType = null;
 
+				
 				String methodName = method.getName();
-
-				if (!"".equals(methodAnnotation.name()))
-					methodName = methodAnnotation.name();
+				
+				if (method.isAnnotationPresent(QUERY.class))
+				{
+					QUERY methodAnnotation = method
+							.getAnnotation(QUERY.class);
+					
+					methodType = MethodType.QUERY;
+					
+					if (!"".equals(methodAnnotation.name()))
+						methodName = methodAnnotation.name();					
+				}else if (method.isAnnotationPresent(UPDATE.class))
+				{
+						UPDATE methodAnnotation = method
+								.getAnnotation(UPDATE.class);
+						
+						methodType = MethodType.UPDATE;
+						
+						if (!"".equals(methodAnnotation.name()))
+							methodName = methodAnnotation.name();					
+				}	
 
 				ArrayList<IDLValue> candidArgs = new ArrayList<IDLValue>();
 
@@ -281,7 +300,7 @@ public final class ProxyBuilder {
 
 				byte[] buf = idlArgs.toBytes();
 
-				switch (methodAnnotation.type()) {
+				switch (methodType) {
 				case QUERY: {
 					QueryBuilder queryBuilder = QueryBuilder.create(agent, this.canisterId, methodName);
 					
