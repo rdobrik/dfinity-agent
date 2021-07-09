@@ -48,6 +48,7 @@ import com.scaleton.dfinity.agent.identity.Identity;
 import com.scaleton.dfinity.agent.identity.PemError;
 import com.scaleton.dfinity.agent.identity.Secp256k1Identity;
 import com.scaleton.dfinity.candid.annotations.Argument;
+import com.scaleton.dfinity.candid.annotations.Name;
 import com.scaleton.dfinity.candid.annotations.QUERY;
 import com.scaleton.dfinity.candid.annotations.UPDATE;
 import com.scaleton.dfinity.candid.parser.IDLArgs;
@@ -208,7 +209,7 @@ public final class ProxyBuilder {
 			{
 				EffectiveCanister effectiveCanister = interfaceClass.getAnnotation(EffectiveCanister.class);
 				
-				effectiveCanisterId = Principal.fromString(effectiveCanister.id());			
+				effectiveCanisterId = Principal.fromString(effectiveCanister.value());			
 			}
 		}		
 		
@@ -218,7 +219,7 @@ public final class ProxyBuilder {
 			{
 				Canister canister = interfaceClass.getAnnotation(Canister.class);
 				
-				canisterId = Principal.fromString(canister.id());
+				canisterId = Principal.fromString(canister.value());
 				
 				if(effectiveCanisterId == null)
 					effectiveCanisterId = canisterId.clone();
@@ -257,25 +258,17 @@ public final class ProxyBuilder {
 				
 				String methodName = method.getName();
 				
-				if (method.isAnnotationPresent(QUERY.class))
-				{
-					QUERY methodAnnotation = method
-							.getAnnotation(QUERY.class);
-					
-					methodType = MethodType.QUERY;
-					
-					if (!"".equals(methodAnnotation.name()))
-						methodName = methodAnnotation.name();					
-				}else if (method.isAnnotationPresent(UPDATE.class))
-				{
-						UPDATE methodAnnotation = method
-								.getAnnotation(UPDATE.class);
-						
+				if (method.isAnnotationPresent(QUERY.class))				
+					methodType = MethodType.QUERY;		
+				else if (method.isAnnotationPresent(UPDATE.class))					
 						methodType = MethodType.UPDATE;
-						
-						if (!"".equals(methodAnnotation.name()))
-							methodName = methodAnnotation.name();					
-				}	
+
+				
+				if (method.isAnnotationPresent(Name.class))
+				{
+					Name nameAnnotation = method.getAnnotation(Name.class);
+					methodName = nameAnnotation.value();
+				}
 
 				ArrayList<IDLValue> candidArgs = new ArrayList<IDLValue>();
 
@@ -290,7 +283,7 @@ public final class ProxyBuilder {
 			        }
 
 					if (argumentAnnotation != null) {
-						Type type = argumentAnnotation.type();
+						Type type = argumentAnnotation.value();
 						candidArgs.add(IDLValue.create(arg, type));
 					} else
 						candidArgs.add(IDLValue.create(arg));

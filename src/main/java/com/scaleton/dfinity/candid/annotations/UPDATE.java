@@ -27,5 +27,4 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface UPDATE {
-	public String name()  default "";
 }

@@ -29,5 +29,5 @@ import com.scaleton.dfinity.candid.types.Type;
 @Retention(RUNTIME)
 @Target({ PARAMETER })
 public @interface Argument {
-	public Type type();
+	public Type value();
 }
