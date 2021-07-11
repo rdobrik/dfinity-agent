@@ -256,6 +256,12 @@ public class QueryTest extends MockTest{
 			
 			Assertions.assertEquals(Integer.valueOf(intValue + 1),intResult);
 			
+			hello.getFloat(doubleValue).whenComplete((output,ex) -> {
+				LOG.info(output.toString());
+				
+				Assertions.assertEquals(doubleValue,output);
+			});
+			
 		} catch (URISyntaxException e) {
 			LOG.error(e.getLocalizedMessage(), e);
 			Assertions.fail(e.getMessage());		

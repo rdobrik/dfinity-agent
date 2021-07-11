@@ -50,8 +50,8 @@ public final class RequestIdSerializer implements Serializer {
 		byte[] valueHash = this.hashValue(value);
 		
 		// TODO remove in the future, it's just for diagnostic purposes
-		LOG.debug("Key Hash for " + key + ":" + Arrays.toString(ByteUtils.toUnsignedIntegerArray(keyHash)));
-		LOG.debug("Value Hash for " + value + ":" + Arrays.toString(ByteUtils.toUnsignedIntegerArray(valueHash)));
+		//LOG.debug("Key Hash for " + key + ":" + Arrays.toString(ByteUtils.toUnsignedIntegerArray(keyHash)));
+		//LOG.debug("Value Hash for " + value + ":" + Arrays.toString(ByteUtils.toUnsignedIntegerArray(valueHash)));
 		
 		fields.put(ByteBuffer.wrap(keyHash), valueHash);
 		
@@ -153,8 +153,8 @@ public final class RequestIdSerializer implements Serializer {
 		
 		for(ByteBuffer value : keyValues)
 		{			
-			LOG.debug("KeyValue Unsigned Sorted :" + Arrays.toString(ByteUtils.toUnsignedIntegerArray(value.array())));
-			LOG.debug("KeyValue Sorted :" + Arrays.toString(value.array()));
+			//LOG.debug("KeyValue Unsigned Sorted :" + Arrays.toString(ByteUtils.toUnsignedIntegerArray(value.array())));
+			//LOG.debug("KeyValue Sorted :" + Arrays.toString(value.array()));
 			
 			messageDigest.update(value);
 		}

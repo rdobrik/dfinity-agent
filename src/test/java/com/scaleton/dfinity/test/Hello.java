@@ -27,6 +27,9 @@ public interface Hello {
 	@Name("echoInt")
 	public Integer getInt(Integer value);	
 	
+	@QUERY
+	public CompletableFuture<Double> getFloat(Double value);
+	
 	@UPDATE
 	@Name("greet")
 	@Waiter(timeout = 30)

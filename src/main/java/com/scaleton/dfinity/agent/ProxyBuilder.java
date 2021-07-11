@@ -300,17 +300,42 @@ public final class ProxyBuilder {
 					queryBuilder.effectiveCanisterId = this.effectiveCanisterId;
 					queryBuilder.ingressExpiryDatetime = this.ingressExpiryDatetime;		
 
-					CompletableFuture<byte[]> response = queryBuilder.arg(buf).call();
+					CompletableFuture<byte[]> builderResponse = queryBuilder.arg(buf).call();
 
 					try {
-						byte[] output = response.get();
+						if(method.getReturnType().equals(CompletableFuture.class))
+						{
+							CompletableFuture<?> response = new CompletableFuture();
+							
+							builderResponse.whenComplete((input, ex) -> {
+								if (ex == null) {
+									if (input != null) {
+										IDLArgs outArgs = IDLArgs.fromBytes(input);
 
-						IDLArgs outArgs = IDLArgs.fromBytes(output);
+										if(outArgs.getArgs().isEmpty())
+											response.completeExceptionally(AgentError.create(AgentError.AgentErrorCode.CUSTOM_ERROR, "Missing return value"));
+										else
+											response.complete(outArgs.getArgs().get(0).getValue());
+									}
+									else
+										response.completeExceptionally(AgentError.create(AgentError.AgentErrorCode.CUSTOM_ERROR, "Missing return value"));
+								}
+								else
+									response.completeExceptionally(ex);
+							});
+							return response;
+						}else
+						{
+							byte[] output = builderResponse.get();
 
-						if(outArgs.getArgs().isEmpty())
-							throw AgentError.create(AgentError.AgentErrorCode.CUSTOM_ERROR, "Missing return value");
-						else	
+							IDLArgs outArgs = IDLArgs.fromBytes(output);
+							
+							if(outArgs.getArgs().isEmpty())
+								throw AgentError.create(AgentError.AgentErrorCode.CUSTOM_ERROR, "Missing return value");
+							
 							return outArgs.getArgs().get(0).getValue();
+						}
+							
 					} catch (Exception e) {
 						throw AgentError.create(AgentError.AgentErrorCode.CUSTOM_ERROR, e, e.getLocalizedMessage());
 					}
