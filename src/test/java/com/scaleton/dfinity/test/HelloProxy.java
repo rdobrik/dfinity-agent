@@ -18,7 +18,7 @@ import com.scaleton.dfinity.candid.types.Type;
 @Agent(identity = @Identity(type = IdentityType.BASIC, pem_file = "./src/test/resources/Ed25519_identity.pem"), transport = @Transport(url = "http://localhost:8001"))
 @Canister("rrkah-fqaaa-aaaaa-aaaaq-cai")
 @EffectiveCanister("rrkah-fqaaa-aaaaa-aaaaq-cai")
-public interface Hello {
+public interface HelloProxy {
 	
 	@QUERY
 	public String peek(@Argument(Type.TEXT)String name, @Argument(Type.INT) Integer value);

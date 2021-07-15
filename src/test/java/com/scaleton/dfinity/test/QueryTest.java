@@ -243,7 +243,7 @@ public class QueryTest extends MockTest{
 			
 			//Hello hello = ProxyBuilder.create(agent, Principal.fromString(TestProperties.CANISTER_ID)).getProxy(Hello.class);
 			
-			Hello hello = ProxyBuilder.create().getProxy(Hello.class);
+			HelloProxy hello = ProxyBuilder.create().getProxy(HelloProxy.class);
 			
 			String result = hello.peek(value, intValue);
 			
