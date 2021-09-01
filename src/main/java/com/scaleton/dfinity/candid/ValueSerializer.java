@@ -18,12 +18,16 @@ package com.scaleton.dfinity.candid;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.scaleton.dfinity.candid.parser.IDLValue;
 import com.scaleton.dfinity.candid.types.Numbers;
+import com.scaleton.dfinity.types.Principal;
 
 public final class ValueSerializer implements Serializer{
 	static final Logger LOG = LoggerFactory.getLogger(ValueSerializer.class);
@@ -111,11 +115,59 @@ public final class ValueSerializer implements Serializer{
 		this.value = ArrayUtils.addAll(this.value, output.array());
     }	
 	
+	public final void serializeOpt(Optional<?> value) {
+		if(value.isPresent())
+		{
+			byte[] leb128 = Leb128.writeUnsigned(1);
+	    	
+	    	this.value = ArrayUtils.addAll(this.value,leb128);		
+	    	
+	    	Object obj = value.get();
+	    	
+	    	IDLValue idlValue = IDLValue.create(obj);
+	    	
+	    	idlValue.idlSerialize(this);
+		}
+		else
+		{
+			byte[] leb128 = Leb128.writeUnsigned(0);
+	    	
+	    	this.value = ArrayUtils.addAll(this.value,leb128);
+		}
+		
+	}
+
+	public final <T> void serializeVec(T[] value) {
+		byte[] leb128 = Leb128.writeUnsigned(value.length);
+    	
+    	this.value = ArrayUtils.addAll(this.value,leb128);
+    	
+    	for(Object element : value)
+    	{
+    		IDLValue idlValue = IDLValue.create(element);
+    		idlValue.idlSerialize(this);
+    	}
+		
+	}
+
+	public final void serializePrincipal(Principal value) {
+		this.value = ArrayUtils.addAll(this.value,(byte)1);
+		
+		byte[] leb128 = Leb128.writeUnsigned(value.getValue().length);
+    	
+    	this.value = ArrayUtils.addAll(this.value,leb128);
+    	
+    	this.value = ArrayUtils.addAll(this.value,value.getValue());
+		
+	}
+	
+	void serializeElement(Object value) {
+		
+	}
+	
 	byte[] getResult()
 	{
 		return this.value;
-	}
-	
-	
+	}	
 
 }

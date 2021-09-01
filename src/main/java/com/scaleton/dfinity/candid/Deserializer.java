@@ -18,11 +18,14 @@ package com.scaleton.dfinity.candid;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import com.scaleton.dfinity.candid.parser.IDLValue;
 import com.scaleton.dfinity.candid.types.Numbers;
 import com.scaleton.dfinity.candid.types.Opcode;
+import com.scaleton.dfinity.types.Principal;
 
 public final class Deserializer{
 	Bytes input;
@@ -77,6 +80,12 @@ public final class Deserializer{
 			return this.deserializeDouble();			
 		case TEXT:
 			return this.deserializeString();
+		case OPT:
+			return this.deserializeOpt();
+		case VEC:
+			return this.deserializeVec();	
+		case PRINCIPAL:
+			return this.deserializePrincipal();			
 		default:
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unrecogized type %d", type.value));
 		}
@@ -106,34 +115,31 @@ public final class Deserializer{
 		String value = this.input.parseString(len);
 
 		return IDLValue.create(value);
-
 	}
 	
 	public IDLValue deserializeInt() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.INT);
 
-		Integer value =  Numbers.decodeInt(input);
+		Integer value =  Numbers.decodeInt(this.input);
 
 		return IDLValue.create(value);
-
 	}
 	
 	public IDLValue deserializeDouble() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.FLOAT64);
 
-		Double value =  ByteBuffer.wrap(input.parseBytes(Double.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getDouble();
+		Double value =  ByteBuffer.wrap(this.input.parseBytes(Double.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getDouble();
 
 		return IDLValue.create(value);
-
 	}	
 	
 	public IDLValue deserializeFloat() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.FLOAT32);
 
-		Float value =  ByteBuffer.wrap(input.parseBytes(Float.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+		Float value =  ByteBuffer.wrap(this.input.parseBytes(Float.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getFloat();
 
 		return IDLValue.create(value);
 	}
@@ -142,7 +148,7 @@ public final class Deserializer{
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.INT8);
 
-		Byte value = input.parseByte();
+		Byte value = this.input.parseByte();
 
 		return IDLValue.create(value);
 	}
@@ -151,7 +157,7 @@ public final class Deserializer{
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.INT16);
 
-		Short value =  ByteBuffer.wrap(input.parseBytes(Short.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+		Short value =  ByteBuffer.wrap(this.input.parseBytes(Short.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getShort();
 
 		return IDLValue.create(value);
 	}
@@ -160,7 +166,7 @@ public final class Deserializer{
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.INT32);
 
-		Integer value =  ByteBuffer.wrap(input.parseBytes(Integer.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getInt();
+		Integer value =  ByteBuffer.wrap(this.input.parseBytes(Integer.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getInt();
 
 		return IDLValue.create(value);
 	}
@@ -169,9 +175,158 @@ public final class Deserializer{
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.INT64);
 
-		Long value =  ByteBuffer.wrap(input.parseBytes(Long.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getLong();
+		Long value =  ByteBuffer.wrap(this.input.parseBytes(Long.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getLong();
 
 		return IDLValue.create(value);
-	}	
+	}
+	
+	public IDLValue deserializeOpt() {
+		this.recordNestingDepth = 0;
+
+		Optional value;
+		
+		switch(this.table.peekType())
+		{
+		case OPT:
+			this.table.parseType();
+			switch(this.input.parseByte())
+			{
+				case 0:
+					value = Optional.empty();
+					break;
+				case 1:
+					value = Optional.of(this.deserializeAny().getValue());
+					break;
+				default:
+					throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Not an option tag"));
+			}
+			break;				
+		case NULL:
+		case RESERVED:
+			this.table.parseType();
+			value = Optional.empty();
+			break;
+		default:
+			value = Optional.of(this.deserializeAny().getValue());
+		}
+
+		return IDLValue.create(value);
+	}
+	
+	public IDLValue deserializeVec() {
+		this.recordNestingDepth = 0;
+		
+		switch(this.table.parseType())
+		{
+			case VEC:
+			{
+				int len = this.input.leb128Read();
+				
+				List values =new ArrayList<>(len);
+				
+				for(int i = 0; i < len; i++)
+				{
+					Integer ty = this.table.peekCurrentType();
+					
+					this.table.currentType.addFirst(ty);
+					
+					IDLValue idlValue = this.deserializeAny();
+					
+					values.add(idlValue.getValue());
+				}
+				
+				Object[] array = this.toArray(values);
+				
+				this.table.popCurrentType();
+				
+				return IDLValue.create(array);
+			}
+			case RECORD:
+				// TODO Implement vector, when supported
+			default:
+				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Seq only takes vector or tuple"));
+		}
+	}
+	
+	public IDLValue deserializePrincipal() {
+		this.recordNestingDepth = 0;
+		this.table.checkType(Opcode.PRINCIPAL);
+		
+		byte bit = this.input.parseByte();
+		
+		if(bit != (byte)1)
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Opaque reference not supported"));
+		
+		int len = this.input.leb128Read();
+		
+		byte[] bytes = this.input.parseBytes(len);
+		
+		Principal value = Principal.from(bytes);
+		
+		return IDLValue.create(value);
+			
+	}
+	
+	Object[] toArray(List value)
+	{
+		Object[] array;
+		
+		Integer ty = this.table.popCurrentType();
+		
+		int size = value.size();
+		
+		Opcode type = Opcode.from(ty);
+		
+		switch(type)
+		{
+			case BOOL:
+				array = value.toArray(new Boolean[size]);
+				break;
+			case INT:			
+				array = value.toArray(new Integer[size]);
+				break;
+			case INT8:			
+				array = value.toArray(new Byte[size]);
+				break;
+			case INT16:			
+				array = value.toArray(new Short[size]);;
+				break;
+			case INT32:			
+				array = value.toArray(new Integer[size]);
+				break;
+			case INT64:			
+				array = value.toArray(new Long[size]);;	
+				break;
+			case FLOAT32:
+				array = value.toArray(new Float[size]);	
+				break;
+			case FLOAT64:
+				array = value.toArray(new Double[size]);
+				break;
+			case TEXT:
+				array = value.toArray(new String[size]);
+				break;
+			case OPT:
+				array = value.toArray(new Optional[size]);
+				break;
+			case VEC:
+				for(Object element : value)
+				{			
+					// TODO implement casting of nested arrays
+					// for now we cast to Object
+				}
+				array = value.toArray(new Object[size]);
+				break;
+			case PRINCIPAL:
+				array = value.toArray(new Principal[size]);
+				break;
+			default :
+				array = value.toArray(new Object[size]);
+		}
+		
+		this.table.currentType.addFirst(ty);
+		
+		return array;
+	}
 
 }

@@ -19,8 +19,6 @@ package com.scaleton.dfinity.candid;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.scaleton.dfinity.candid.parser.IDLValue;
 
@@ -36,6 +34,15 @@ public final class IDLBuilder {
 		
 		value.idlSerialize(valueSer);
 	}
+	
+	public <T> void arg(T value)
+	{
+		IDLValue idlValue = IDLValue.create(value);
+		
+		this.typeSer.pushType(idlValue.getType());
+		
+		idlValue.idlSerialize(valueSer);
+	}	
 	
 	public byte[] serializeToVec()
 	{

@@ -16,13 +16,11 @@
 
 package com.scaleton.dfinity.candid.types;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import com.scaleton.dfinity.candid.CandidError;
 
 public enum Opcode {
 	NULL(-1), BOOL(-2), NAT(-3), INT(-4), NAT8(-5), NAT16(-6), NAT32(-7), NAT64(-8), INT8(-9), INT16(-10), INT32(-11), INT64(-12), FLOAT32(-13), FLOAT64(-14),
-	TEXT(-15), RESERVED(-16), EMPTY(-17), OPT(-18), VEC(-19),RECORD(-20), VARIANT(-21);
+	TEXT(-15), RESERVED(-16), EMPTY(-17), OPT(-18), VEC(-19),RECORD(-20), VARIANT(-21), FUNC(-22), SERVICE(-23), PRINCIPAL(-24);
 
 	public int value;
 
@@ -73,16 +71,16 @@ public enum Opcode {
 		case -20:
 			return RECORD;
 		case -21:
-			return VARIANT;			
+			return VARIANT;	
+		case -22:
+			return FUNC;	
+		case -23:
+			return SERVICE;	
+		case -24:
+			return PRINCIPAL;				
 		default:
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unknown opcode %d", value));
 		}
 	}
 	
-	public static boolean isPrimitive(Opcode type)
-	{
-		Opcode[] primitives = {NULL,BOOL,NAT,INT,NAT8,NAT16,NAT32,NAT64,INT8,INT16,INT32,INT64,FLOAT32,FLOAT64,TEXT,RESERVED,EMPTY};
-		
-		return ArrayUtils.contains(primitives, type);
-	}
 }

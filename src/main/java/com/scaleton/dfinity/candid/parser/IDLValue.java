@@ -22,6 +22,7 @@ import com.scaleton.dfinity.candid.Deserialize;
 import com.scaleton.dfinity.candid.Deserializer;
 import com.scaleton.dfinity.candid.Serializer;
 import com.scaleton.dfinity.candid.types.Type;
+import com.scaleton.dfinity.types.Principal;
 
 public final class IDLValue implements Deserialize{
 	Optional<?> value;
@@ -44,32 +45,7 @@ public final class IDLValue implements Deserialize{
 		
 		idlValue.value = Optional.ofNullable(value);
 		
-		if(value == null)
-		{	
-			
-			idlValue.type = Type.NULL;
-		}	
-		else
-		{	
-			if(value instanceof Boolean)
-				idlValue.type = Type.BOOL;		
-			else if(value instanceof Integer)				
-				idlValue.type =  Type.INT;
-			else if(value instanceof Byte)
-				idlValue.type =  Type.INT8;			
-			else if(value instanceof Short)
-				idlValue.type =  Type.INT16;			
-			else if(value instanceof Long)
-				idlValue.type =  Type.INT64;
-			else if(value instanceof Float)
-				idlValue.type =  Type.FLOAT32;			
-			else if(value instanceof Double)
-				idlValue.type =  Type.FLOAT64;				
-			else if(value instanceof String)
-				idlValue.type = Type.TEXT;
-			else
-				idlValue.type =  Type.NULL;	
-		}	
+		idlValue.type = Type.createType(value);	
 		
 		return idlValue;
 	}
@@ -107,7 +83,16 @@ public final class IDLValue implements Deserialize{
 			break;			
 		case TEXT:
 			serializer.serializeString((String) value.get());
-			break;			
+			break;	
+		case OPT:
+			serializer.serializeOpt((Optional) value.get());
+			break;
+		case VEC:
+			serializer.serializeVec((Object[])value.get());
+			break;
+		case PRINCIPAL:
+			serializer.serializePrincipal((Principal) value.get());
+			break;				
 		}
 
 	}

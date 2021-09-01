@@ -17,7 +17,9 @@
 package com.scaleton.dfinity.candid;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -25,70 +27,129 @@ import com.scaleton.dfinity.candid.types.Opcode;
 import com.scaleton.dfinity.candid.types.Type;
 
 public final class TypeSerialize {
+	Map<Type, Integer> typeMap;
 	List<byte[]> typeTable;
 	List<Type> args;
-	
+
 	byte[] result;
-	
-	TypeSerialize()
-	{
+
+	TypeSerialize() {
+		this.typeMap = new HashMap<Type, Integer>();
 		this.typeTable = new ArrayList<byte[]>();
 		this.args = new ArrayList<Type>();
 		this.result = ArrayUtils.EMPTY_BYTE_ARRAY;
 	}
-	
+
 	void pushType(Type type) {
 		this.args.add(type);
-		
-	}	
-	
-	byte[] encode(Type type)
-	{
-		switch(type)
-		{
-		case NULL: return Leb128.writeSigned(Opcode.NULL.value);
-		case BOOL: return Leb128.writeSigned(Opcode.BOOL.value);
-		case NAT: return Leb128.writeSigned(Opcode.NAT.value);		
-		case INT: return Leb128.writeSigned(Opcode.INT.value);
-		case NAT8: return Leb128.writeSigned(Opcode.NAT8.value);
-		case NAT16: return Leb128.writeSigned(Opcode.NAT16.value);
-		case NAT32: return Leb128.writeSigned(Opcode.NAT32.value);
-		case NAT64: return Leb128.writeSigned(Opcode.NAT64.value);			
-		case INT8: return Leb128.writeSigned(Opcode.INT8.value);
-		case INT16: return Leb128.writeSigned(Opcode.INT16.value);
-		case INT32: return Leb128.writeSigned(Opcode.INT32.value);
-		case INT64: return Leb128.writeSigned(Opcode.INT64.value);	
-		case FLOAT32: return Leb128.writeSigned(Opcode.FLOAT32.value);
-		case FLOAT64: return Leb128.writeSigned(Opcode.FLOAT64.value);		
-		case TEXT: return Leb128.writeSigned(Opcode.TEXT.value);
+		this.buildType(type);
+	}
+
+	void buildType(Type type) {
+		if (typeMap.containsKey(type))
+			return;
+
+		Type actualType = type;
+
+		if (actualType.isPrimitive())
+			return;
+
+		Integer idx = this.typeTable.size();
+
+		this.typeMap.put(type, idx);
+
+		byte[] buf = ArrayUtils.EMPTY_BYTE_ARRAY;
+
+		this.typeTable.add(ArrayUtils.EMPTY_BYTE_ARRAY);
+
+		switch (actualType) {
+		case OPT:
+			for (Type innerType : actualType.getInnerTypes())
+				this.buildType(innerType);
+			buf = ArrayUtils.addAll(buf, Leb128.writeSigned(Opcode.OPT.value));
+			for (Type innerType : actualType.getInnerTypes())
+				buf = ArrayUtils.addAll(buf, this.encode(innerType));
+			break;
+		case VEC:
+			for (Type innerType : actualType.getInnerTypes())
+				this.buildType(innerType);
+			buf = ArrayUtils.addAll(buf, Leb128.writeSigned(Opcode.VEC.value));
+			for (Type innerType : actualType.getInnerTypes())
+				buf = ArrayUtils.addAll(buf, this.encode(innerType));
+			break;
+
+		}
+
+		this.typeTable.set(idx, buf);
+	}
+
+	byte[] encode(Type type) {
+		switch (type) {
+		case NULL:
+			return Leb128.writeSigned(Opcode.NULL.value);
+		case BOOL:
+			return Leb128.writeSigned(Opcode.BOOL.value);
+		case NAT:
+			return Leb128.writeSigned(Opcode.NAT.value);
+		case INT:
+			return Leb128.writeSigned(Opcode.INT.value);
+		case NAT8:
+			return Leb128.writeSigned(Opcode.NAT8.value);
+		case NAT16:
+			return Leb128.writeSigned(Opcode.NAT16.value);
+		case NAT32:
+			return Leb128.writeSigned(Opcode.NAT32.value);
+		case NAT64:
+			return Leb128.writeSigned(Opcode.NAT64.value);
+		case INT8:
+			return Leb128.writeSigned(Opcode.INT8.value);
+		case INT16:
+			return Leb128.writeSigned(Opcode.INT16.value);
+		case INT32:
+			return Leb128.writeSigned(Opcode.INT32.value);
+		case INT64:
+			return Leb128.writeSigned(Opcode.INT64.value);
+		case FLOAT32:
+			return Leb128.writeSigned(Opcode.FLOAT32.value);
+		case FLOAT64:
+			return Leb128.writeSigned(Opcode.FLOAT64.value);
+		case RESERVED:
+			return Leb128.writeSigned(Opcode.RESERVED.value);
+		case TEXT:
+			return Leb128.writeSigned(Opcode.TEXT.value);
+		case EMPTY:
+			return Leb128.writeSigned(Opcode.EMPTY.value);
+		case PRINCIPAL:
+			return Leb128.writeSigned(Opcode.PRINCIPAL.value);
 		default:
-			return ArrayUtils.EMPTY_BYTE_ARRAY;	
+			Integer idx = this.typeMap.getOrDefault(type, -1);
+			if (idx != -1)
+				return Leb128.writeSigned(idx);
+			else
+				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Type %s not found", type));
 		}
 	}
-	
-	void serialize()
-	{		
+
+	void serialize() {
 		this.result = ArrayUtils.addAll(this.result, Leb128.writeUnsigned(this.typeTable.size()));
-		
+
 		// TODO serialize content of type table
-		
+		for (byte[] type : this.typeTable)
+			this.result = ArrayUtils.addAll(this.result, type);
+
 		this.result = ArrayUtils.addAll(this.result, Leb128.writeUnsigned(this.args.size()));
-		
+
 		byte[] tyEncode = ArrayUtils.EMPTY_BYTE_ARRAY;
-		
-		for(Type type : args)
-		{
-			tyEncode = ArrayUtils.addAll(tyEncode,this.encode(type));
+
+		for (Type type : args) {
+			tyEncode = ArrayUtils.addAll(tyEncode, this.encode(type));
 		}
-		
-		this.result = ArrayUtils.addAll(this.result,tyEncode);
+
+		this.result = ArrayUtils.addAll(this.result, tyEncode);
 	}
-	
-	byte[] getResult()
-	{
+
+	byte[] getResult() {
 		return this.result;
 	}
 
-
-	
 }

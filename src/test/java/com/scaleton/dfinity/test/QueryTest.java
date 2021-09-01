@@ -22,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockserver.client.MockServerClient;
 import org.mockserver.client.NettyHttpClient;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
@@ -197,9 +196,100 @@ public class QueryTest extends MockTest{
 			} catch (Throwable ex) {
 				LOG.debug(ex.getLocalizedMessage(), ex);
 				Assertions.fail(ex.getLocalizedMessage());
-			}			
+			}	
 			
+			// test Principal argument
+			
+			args = new ArrayList<IDLValue>();
 
+			Principal principalValue =Principal.fromString(TestProperties.CANISTER_ID);
+			args.add(IDLValue.create(principalValue));			
+			
+			idlArgs = IDLArgs.create(args);
+
+			buf = idlArgs.toBytes();
+
+			response = agent.queryRaw(Principal.fromString(TestProperties.CANISTER_ID),
+					Principal.fromString(TestProperties.CANISTER_ID), "echoPrincipal", buf, Optional.empty());
+
+			try {
+				byte[] output = response.get();
+
+				IDLArgs outArgs = IDLArgs.fromBytes(output);
+
+				LOG.info(outArgs.getArgs().get(0).getValue().toString());
+				Assertions.assertEquals(principalValue.toString(),outArgs.getArgs().get(0).getValue().toString());
+			} catch (Throwable ex) {
+				LOG.debug(ex.getLocalizedMessage(), ex);
+				Assertions.fail(ex.getLocalizedMessage());
+			}			
+
+			// test Arrays argument
+			
+			args = new ArrayList<IDLValue>();
+
+			Integer[] arrayValue = {10000,20000,30000};
+			
+			args.add(IDLValue.create(arrayValue));			
+			
+			idlArgs = IDLArgs.create(args);
+
+			buf = idlArgs.toBytes();
+
+			response = agent.queryRaw(Principal.fromString(TestProperties.CANISTER_ID),
+					Principal.fromString(TestProperties.CANISTER_ID), "echoVec", buf, Optional.empty());
+
+			try {
+				byte[] output = response.get();
+
+				IDLArgs outArgs = IDLArgs.fromBytes(output);
+				
+				Integer[] arrayResponse = (Integer[])outArgs.getArgs().get(0).getValue();
+
+				LOG.info(Integer.toString(arrayResponse.length));
+				Assertions.assertSame(arrayValue.length,arrayResponse.length);
+				
+				LOG.info(Integer.toString(arrayResponse[0]));
+				Assertions.assertEquals(arrayValue[0],arrayResponse[0]);
+				
+				LOG.info(Integer.toString(arrayResponse[1]));
+				Assertions.assertEquals(arrayValue[1],arrayResponse[1]);
+				
+				LOG.info(Integer.toString(arrayResponse[2]));
+				Assertions.assertEquals(arrayValue[2],arrayResponse[2]);				
+			} catch (Throwable ex) {
+				LOG.debug(ex.getLocalizedMessage(), ex);
+				Assertions.fail(ex.getLocalizedMessage());
+			}	
+			
+			// test Optional argument
+			
+			args = new ArrayList<IDLValue>();
+
+			Optional optionalValue =Optional.of(intValue);
+			args.add(IDLValue.create(optionalValue));			
+			
+			idlArgs = IDLArgs.create(args);
+
+			buf = idlArgs.toBytes();
+
+			response = agent.queryRaw(Principal.fromString(TestProperties.CANISTER_ID),
+					Principal.fromString(TestProperties.CANISTER_ID), "echoOption", buf, Optional.empty());
+
+			try {
+				byte[] output = response.get();
+
+				IDLArgs outArgs = IDLArgs.fromBytes(output);
+
+				LOG.info(outArgs.getArgs().get(0).getValue().toString());
+				Assertions.assertEquals(optionalValue,outArgs.getArgs().get(0).getValue());
+			} catch (Throwable ex) {
+				LOG.debug(ex.getLocalizedMessage(), ex);
+				Assertions.fail(ex.getLocalizedMessage());
+			}			
+
+			// test invalid method name
+			
 			response = agent.queryRaw(Principal.fromString(TestProperties.CANISTER_ID),
 					Principal.fromString(TestProperties.CANISTER_ID), "hello", buf, Optional.empty());
 
@@ -310,7 +400,16 @@ public class QueryTest extends MockTest{
 							 break;
 						 case "echoFloat":
 							 responseFileName = TestProperties.CBOR_ECHOFLOAT_QUERY_RESPONSE_FILE;
-							 break;							 
+							 break;
+						 case "echoOption":
+							 responseFileName = TestProperties.CBOR_ECHOOPT_QUERY_RESPONSE_FILE;							 
+							 break;	
+						 case "echoVec":
+							 responseFileName = TestProperties.CBOR_ECHOVEC_QUERY_RESPONSE_FILE;							 
+							 break;
+						 case "echoPrincipal":
+							 responseFileName = TestProperties.CBOR_ECHOPRINCIPAL_QUERY_RESPONSE_FILE;							 
+							 break;								 
 						 case "peek":
 							 responseFileName = TestProperties.CBOR_PEEK_QUERY_RESPONSE_FILE;
 							 break;

@@ -17,6 +17,7 @@
 package com.scaleton.dfinity.candid;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,15 +28,15 @@ import com.scaleton.dfinity.candid.types.Opcode;
 public final class TypeTable {
 	// Raw value of the type description table
 	List<List<Integer>> table;
-	
+
 	// Value types for deserialization
 	Queue<Integer> types;
-	
+
 	// The front of current_type queue always points to the type of the value we are
 	// deserializing.
-	Queue<Integer> currentType;
+	Deque<Integer> currentType;
 
-	TypeTable(List<List<Integer>> table, Queue<Integer> types, Queue<Integer> currentType) {
+	TypeTable(List<List<Integer>> table, Queue<Integer> types, Deque<Integer> currentType) {
 		this.table = table;
 		this.types = types;
 		this.currentType = currentType;
@@ -54,7 +55,22 @@ public final class TypeTable {
 
 		int len = bytes.leb128Read();
 
-		// TODO add type table processing
+		for (int i = 0; i < len; i++) {
+			List<Integer> buf = new ArrayList<Integer>();
+
+			Integer ty = bytes.leb128ReadSigned();
+
+			buf.add(ty);
+			if (ty == Opcode.OPT.value || ty == Opcode.VEC.value) {
+				ty = bytes.leb128ReadSigned();
+				validateTypeRange(ty, len);
+				buf.add(ty);
+			} else {
+				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unsupported op_code %d in type table", ty));
+			}
+			
+			table.add(buf);
+		}
 
 		len = bytes.leb128Read();
 
@@ -96,7 +112,7 @@ public final class TypeTable {
 		if (type != null)
 			return type;
 		else
-			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "empty current_type");
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Empty current_type");
 
 	}
 
@@ -107,7 +123,7 @@ public final class TypeTable {
 		if (type != null)
 			return type;
 		else
-			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "empty current_type");
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Empty current_type");
 
 	}
 
@@ -153,9 +169,10 @@ public final class TypeTable {
 	// Check if currentType matches the provided type
 	void checkType(Opcode expected) {
 		Opcode wireType = this.parseType();
-		
-		if(wireType != expected)
-			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Type mismatch. Type on the wire: %d; Expected type: %d", wireType.value, expected.value));
+
+		if (wireType != expected)
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String
+					.format("Type mismatch. Type on the wire: %d; Expected type: %d", wireType.value, expected.value));
 	}
 
 }

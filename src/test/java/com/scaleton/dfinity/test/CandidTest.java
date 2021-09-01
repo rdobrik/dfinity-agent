@@ -2,6 +2,7 @@ package com.scaleton.dfinity.test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.scaleton.dfinity.candid.parser.IDLArgs;
 import com.scaleton.dfinity.candid.parser.IDLValue;
+import com.scaleton.dfinity.types.Principal;
 
 public final class CandidTest {
 	static final Logger LOG = LoggerFactory.getLogger(CandidTest.class);
@@ -31,6 +33,55 @@ public final class CandidTest {
 
 		LOG.info(outArgs.getArgs().get(0).getValue().toString());
 		Assertions.assertEquals(intValue,outArgs.getArgs().get(0).getValue());
+		
+		// test Principal argument
+		
+		Principal principal = Principal.fromString("rrkah-fqaaa-aaaaa-aaaaq-cai");
+		
+		args = new ArrayList<IDLValue>();
+		
+		args.add(IDLValue.create(principal));
+		
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		Principal principalResult = (Principal)outArgs.getArgs().get(0).getValue();
+		
+		LOG.info(principalResult.toString());	
+		
+		Assertions.assertEquals(principal.toString(),principalResult.toString());
+		
+		// test Array argument
+		args = new ArrayList<IDLValue>();
+		
+		Integer[] array = {10000,20000,30000};
+		
+		args.add(IDLValue.create(array));
+		
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();	
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		// test Optional argument
+		args = new ArrayList<IDLValue>();
+		
+		args.add(IDLValue.create(Optional.of(intValue)));	
+		
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();	
+		
+		outArgs = IDLArgs.fromBytes(buf);
+		
+		Optional optionalResult = (Optional)outArgs.getArgs().get(0).getValue();
+		
+		LOG.info(optionalResult.get().toString());
+		Assertions.assertEquals(Optional.of(intValue),optionalResult);		
 		
 		// test String argument
 		

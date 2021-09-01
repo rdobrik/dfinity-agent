@@ -16,6 +16,10 @@
 
 package com.scaleton.dfinity.candid;
 
+import java.util.Optional;
+
+import com.scaleton.dfinity.types.Principal;
+
 public interface Serializer {
 	public void serializeNull();
 	
@@ -36,5 +40,11 @@ public interface Serializer {
 	public void serializeInteger(Integer value);
 	
 	public void serializeLong(Long value);	
+	
+	public void serializeOpt(Optional<?> value);
+	
+	public <T> void serializeVec(T[] value);	
+	
+	public void serializePrincipal(Principal value);
 
 }
