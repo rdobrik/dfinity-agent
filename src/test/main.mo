@@ -1,3 +1,5 @@
+import Principal "mo:base/Principal";
+
 actor {
     stable var name = "Me";
 
@@ -28,5 +30,17 @@ actor {
 
     public shared query func echoBool( value : Bool) : async Bool {
         return value;
-    };        
+    }; 
+
+    public shared query func echoOption( value : ?Int) : async ?Int {
+        return value;
+    }; 
+
+    public shared query func echoVec( value : [Int]) : async [Int] {
+        return value;
+    };
+
+    public shared query func echoPrincipal( value : Principal) : async Principal {
+        return value;
+    };                   
 };
