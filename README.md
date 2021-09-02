@@ -25,7 +25,7 @@ Dfinity Java Agent is available under Apache License 2.0.
 
 # Documentation
 
-##Supported type mapping between Java and Candid
+## Supported type mapping between Java and Candid
 
 | Candid      | Java    |
 | :---------- | :---------- | 
@@ -43,12 +43,12 @@ Dfinity Java Agent is available under Apache License 2.0.
 | vec   | array | 
 | null   |Null | 
 
-##Supported Identities
+## Supported Identities
 
 Anonymous
 Implicit by default
 
-###Basic Identity (Ed25519)
+### Basic Identity (Ed25519)
 
 Either generate Key Pair
 
@@ -78,9 +78,9 @@ For Basic and Identities we are using Bouncy Castle open source libraries. To ad
 Security.addProvider(new BouncyCastleProvider());
 ```
 
-##Supported Transports
+## Supported Transports
 
-###HTTP Transport
+### HTTP Transport
 
 ```
 Transport transport = ReplicaHttpTransport.create("http://localhost:8000");
@@ -94,7 +94,7 @@ Create Agent object
 Agent agent = new AgentBuilder().transport(transport).identity(identity).build();
 ```
 
-##IDLArgs
+## IDLArgs
 
 To pass arguments to the Internet Computer Canister methods
 
@@ -112,7 +112,7 @@ byte[] buf = idlArgs.toBytes();
 
 ## Supported Raw Methods
 
-###Query
+### Query
 
 To call query method
 
@@ -124,7 +124,7 @@ byte[] output = response.get();
 IDLArgs outArgs = IDLArgs.fromBytes(output);
 ```
 
-###Update
+### Update
 
 To call update method
 
@@ -133,7 +133,7 @@ CompletableFuture<RequestId> response = agent.updateRaw(Principal.fromString(can
 					Principal.fromString(canister_id), "greet", buf, ingressExpiryDatetime);
 ```
 
-###GetState
+### GetState
 
 To call getState method to retrieve result of update method
 
@@ -146,7 +146,7 @@ CompletableFuture<RequestStatusResponse> statusResponse = agent.requestStatusRaw
 
 ## Supported Builders
 
-###QueryBuilder
+### QueryBuilder
 
 ```
 CompletableFuture<byte[]> response = QueryBuilder.create(agent, Principal.fromString(canister_id), "echoInt").expireAfter(Duration.ofMinutes(3)).arg(buf).call();
@@ -155,7 +155,7 @@ byte[] output = response.get();
 IDLArgs outArgs = IDLArgs.fromBytes(output);
 ```
 
-###UpdateBuilder
+### UpdateBuilder
 
 ```
 UpdateBuilder updateBuilder = UpdateBuilder
