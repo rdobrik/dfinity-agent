@@ -16,6 +16,7 @@
 
 package com.scaleton.dfinity.candid;
 
+import java.math.BigInteger;
 import java.util.Optional;
 
 import com.scaleton.dfinity.types.Principal;
@@ -25,21 +26,31 @@ public interface Serializer {
 	
 	public void serializeBool(Boolean value);
 	
-	public void serializeString(String value);
+	public void serializeText(String value);
 	
-	public void serializeInt(Integer value);
+	public void serializeNat(BigInteger value);
+	
+	public void serializeNat8(Byte value);
+	
+	public void serializeNat16(Short value);
+	
+	public void serializeNat32(Integer value);
+	
+	public void serializeNat64(Long value);		
+	
+	public void serializeInt(BigInteger value);
 
-	public void serializeDouble(Double value);
+	public void serializeFloat64(Double value);
 	
-	public void serializeFloat(Float value);
+	public void serializeFloat32(Float value);
 	
-	public void serializeByte(Byte value);
+	public void serializeInt8(Byte value);
 	
-	public void serializeShort(Short value);
+	public void serializeInt16(Short value);
 	
-	public void serializeInteger(Integer value);
+	public void serializeInt32(Integer value);
 	
-	public void serializeLong(Long value);	
+	public void serializeInt64(Long value);	
 	
 	public void serializeOpt(Optional<?> value);
 	

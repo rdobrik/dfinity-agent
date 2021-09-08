@@ -1,5 +1,6 @@
 package com.scaleton.dfinity.test;
 
+import java.math.BigInteger;
 import java.util.concurrent.CompletableFuture;
 
 import com.scaleton.dfinity.agent.annotations.Agent;
@@ -21,11 +22,11 @@ import com.scaleton.dfinity.candid.types.Type;
 public interface HelloProxy {
 	
 	@QUERY
-	public String peek(@Argument(Type.TEXT)String name, @Argument(Type.INT) Integer value);
+	public String peek(@Argument(Type.TEXT)String name, @Argument(Type.INT) BigInteger value);
 	
 	@QUERY
 	@Name("echoInt")
-	public Integer getInt(Integer value);	
+	public BigInteger getInt(BigInteger value);	
 	
 	@QUERY
 	public CompletableFuture<Double> getFloat(Double value);

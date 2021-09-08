@@ -16,6 +16,7 @@
 
 package com.scaleton.dfinity.candid.parser;
 
+import java.math.BigInteger;
 import java.util.Optional;
 
 import com.scaleton.dfinity.candid.Deserialize;
@@ -26,13 +27,13 @@ import com.scaleton.dfinity.types.Principal;
 
 public final class IDLValue implements Deserialize{
 	Optional<?> value;
-	Type type;
+	IDLType idlType;
 	
 	public static IDLValue create(Object value, Type type)
 	{
 		IDLValue idlValue = new IDLValue();
 		
-		idlValue.type = type;
+		idlValue.idlType = IDLType.createType(type);
 			
 		idlValue.value = Optional.ofNullable(value);
 		
@@ -45,14 +46,14 @@ public final class IDLValue implements Deserialize{
 		
 		idlValue.value = Optional.ofNullable(value);
 		
-		idlValue.type = Type.createType(value);	
+		idlValue.idlType = IDLType.createType(value);	
 		
 		return idlValue;
 	}
 	
 	public void idlSerialize(Serializer serializer)
 	{
-		switch(this.type)
+		switch(this.idlType.type)
 		{
 		case NULL:
 			serializer.serializeNull();
@@ -60,29 +61,44 @@ public final class IDLValue implements Deserialize{
 		case BOOL:
 			serializer.serializeBool((Boolean) value.get());
 			break;
+		case NAT:
+			serializer.serializeNat((BigInteger) value.get());
+			break;
+		case NAT8:
+			serializer.serializeNat8((Byte) value.get());
+			break;
+		case NAT16:
+			serializer.serializeNat16((Short) value.get());
+			break;
+		case NAT32:
+			serializer.serializeNat32((Integer) value.get());
+			break;
+		case NAT64:
+			serializer.serializeNat64((Long) value.get());
+			break;			
 		case INT:
-			serializer.serializeInt((Integer) value.get());
+			serializer.serializeInt((BigInteger) value.get());			
 			break;
 		case INT8:
-			serializer.serializeByte((Byte) value.get());
+			serializer.serializeInt8((Byte) value.get());
 			break;	
 		case INT16:
-			serializer.serializeShort((Short) value.get());
+			serializer.serializeInt16((Short) value.get());
 			break;
 		case INT32:
-			serializer.serializeInteger((Integer) value.get());
+			serializer.serializeInt32((Integer) value.get());
 			break;
 		case INT64:
-			serializer.serializeLong((Long) value.get());
+			serializer.serializeInt64((Long) value.get());
 			break;			
 		case FLOAT32:
-			serializer.serializeFloat((Float) value.get());	
+			serializer.serializeFloat32((Float) value.get());	
 			break;
 		case FLOAT64:
-			serializer.serializeDouble((Double) value.get());
+			serializer.serializeFloat64((Double) value.get());
 			break;			
 		case TEXT:
-			serializer.serializeString((String) value.get());
+			serializer.serializeText((String) value.get());
 			break;	
 		case OPT:
 			serializer.serializeOpt((Optional) value.get());
@@ -97,21 +113,31 @@ public final class IDLValue implements Deserialize{
 
 	}
 	
+	public IDLType getIDLType()
+	{
+		return this.idlType;	
+	}	
+	
 	public Type getType()
 	{
-		return this.type;	
+		return this.idlType.type;	
 	}
 
 	public <T> T getValue()
 	{
-		T value = (T) this.value.get();
-		return value;
+		if(this.value.isPresent())
+		{
+			T value = (T) this.value.get();
+			return value;
+		}
+		else
+			return null;
 	}
 	
 	public void deserialize(Deserializer deserializer) {
 		IDLValue idlValue = deserializer.deserializeAny();	
 		
-		this.type = idlValue.type;
+		this.idlType = idlValue.idlType;
 		this.value = idlValue.value;
 	}	
 

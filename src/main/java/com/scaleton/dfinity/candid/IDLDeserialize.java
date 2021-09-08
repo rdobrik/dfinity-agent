@@ -49,7 +49,7 @@ public final class IDLDeserialize {
 		
 		this.de.table.currentType.add(ty);
 		
-		value.deserialize(de);
+		value.deserialize(this.de);
 		
 		if(this.de.table.currentType.isEmpty() && !this.de.fieldName.isPresent())
 			return value;
@@ -61,6 +61,12 @@ public final class IDLDeserialize {
 	public boolean isDone()
 	{
 		return this.de.table.types.isEmpty();
+	}
+	
+	public void done()
+	{
+		if(this.de.input.data.hasRemaining())
+			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Trailing type after deserializing a value");
 	}
 
 }

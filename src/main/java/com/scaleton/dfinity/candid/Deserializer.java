@@ -16,6 +16,7 @@
 
 package com.scaleton.dfinity.candid;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -62,24 +63,36 @@ public final class Deserializer{
 			this.recordNestingDepth = 0;
 
 		switch (type) {
+		case NULL:
+			return this.deserializeNull();		
 		case BOOL:
 			return this.deserializeBool();	
+		case NAT:			
+			return this.deserializeNat();
+		case NAT8:			
+			return this.deserializeNat8();			
+		case NAT16:			
+			return this.deserializeNat16();	
+		case NAT32:			
+			return this.deserializeNat32();			
+		case NAT64:			
+			return this.deserializeNat64();			
 		case INT:			
 			return this.deserializeInt();
 		case INT8:			
-			return this.deserializeByte();
+			return this.deserializeInt8();
 		case INT16:			
-			return this.deserializeShort();
+			return this.deserializeInt16();
 		case INT32:			
-			return this.deserializeInteger();
+			return this.deserializeInt32();
 		case INT64:			
-			return this.deserializeLong();			
+			return this.deserializeInt64();			
 		case FLOAT32:
-			return this.deserializeFloat();			
+			return this.deserializeFloat32();			
 		case FLOAT64:
-			return this.deserializeDouble();			
+			return this.deserializeFloat64();			
 		case TEXT:
-			return this.deserializeString();
+			return this.deserializeText();
 		case OPT:
 			return this.deserializeOpt();
 		case VEC:
@@ -90,6 +103,13 @@ public final class Deserializer{
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unrecogized type %d", type.value));
 		}
 
+	}
+	
+	public IDLValue deserializeNull() {
+		this.recordNestingDepth = 0;
+		this.table.checkType(Opcode.NULL);
+
+		return IDLValue.create(null);
 	}
 
 	public IDLValue deserializeBool() {
@@ -107,7 +127,7 @@ public final class Deserializer{
 
 	}
 
-	public IDLValue deserializeString() {
+	public IDLValue deserializeText() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.TEXT);
 		int len = this.input.leb128Read();
@@ -117,16 +137,25 @@ public final class Deserializer{
 		return IDLValue.create(value);
 	}
 	
-	public IDLValue deserializeInt() {
+	public IDLValue deserializeNat() {
 		this.recordNestingDepth = 0;
-		this.table.checkType(Opcode.INT);
+		this.table.checkType(Opcode.NAT);
 
-		Integer value =  Numbers.decodeInt(this.input);
+		BigInteger value =  Numbers.decodeBigNat(this.input);
 
 		return IDLValue.create(value);
 	}
 	
-	public IDLValue deserializeDouble() {
+	public IDLValue deserializeInt() {
+		this.recordNestingDepth = 0;
+		this.table.checkType(Opcode.INT);
+
+		BigInteger value =  Numbers.decodeBigInt(this.input);
+
+		return IDLValue.create(value);
+	}
+	
+	public IDLValue deserializeFloat64() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.FLOAT64);
 
@@ -135,7 +164,7 @@ public final class Deserializer{
 		return IDLValue.create(value);
 	}	
 	
-	public IDLValue deserializeFloat() {
+	public IDLValue deserializeFloat32() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.FLOAT32);
 
@@ -144,7 +173,43 @@ public final class Deserializer{
 		return IDLValue.create(value);
 	}
 	
-	public IDLValue deserializeByte() {
+	public IDLValue deserializeNat8() {
+		this.recordNestingDepth = 0;
+		this.table.checkType(Opcode.NAT8);
+
+		Byte value = this.input.parseByte();
+
+		return IDLValue.create(value);
+	}	
+	
+	public IDLValue deserializeNat16() {
+		this.recordNestingDepth = 0;
+		this.table.checkType(Opcode.NAT16);
+
+		Short value =  ByteBuffer.wrap(this.input.parseBytes(Short.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getShort();
+
+		return IDLValue.create(value);
+	}
+
+	public IDLValue deserializeNat32() {
+		this.recordNestingDepth = 0;
+		this.table.checkType(Opcode.NAT32);
+
+		Integer value =  ByteBuffer.wrap(this.input.parseBytes(Integer.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getInt();
+
+		return IDLValue.create(value);
+	}
+	
+	public IDLValue deserializeNat64() {
+		this.recordNestingDepth = 0;
+		this.table.checkType(Opcode.NAT64);
+
+		Long value =  ByteBuffer.wrap(this.input.parseBytes(Long.BYTES)).order(ByteOrder.LITTLE_ENDIAN).getLong();
+
+		return IDLValue.create(value);
+	}	
+	
+	public IDLValue deserializeInt8() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.INT8);
 
@@ -153,7 +218,7 @@ public final class Deserializer{
 		return IDLValue.create(value);
 	}
 	
-	public IDLValue deserializeShort() {
+	public IDLValue deserializeInt16() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.INT16);
 
@@ -162,7 +227,7 @@ public final class Deserializer{
 		return IDLValue.create(value);
 	}
 
-	public IDLValue deserializeInteger() {
+	public IDLValue deserializeInt32() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.INT32);
 
@@ -171,7 +236,7 @@ public final class Deserializer{
 		return IDLValue.create(value);
 	}
 	
-	public IDLValue deserializeLong() {
+	public IDLValue deserializeInt64() {
 		this.recordNestingDepth = 0;
 		this.table.checkType(Opcode.INT64);
 
@@ -282,8 +347,23 @@ public final class Deserializer{
 			case BOOL:
 				array = value.toArray(new Boolean[size]);
 				break;
-			case INT:			
+			case NAT:			
+				array = value.toArray(new BigInteger[size]);
+				break;
+			case NAT8:			
+				array = value.toArray(new Byte[size]);
+				break;
+			case NAT16:			
+				array = value.toArray(new Short[size]);;
+				break;
+			case NAT32:			
 				array = value.toArray(new Integer[size]);
+				break;
+			case NAT64:			
+				array = value.toArray(new Long[size]);;	
+				break;				
+			case INT:			
+				array = value.toArray(new BigInteger[size]);
 				break;
 			case INT8:			
 				array = value.toArray(new Byte[size]);

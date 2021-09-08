@@ -23,59 +23,60 @@ import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.scaleton.dfinity.candid.parser.IDLType;
 import com.scaleton.dfinity.candid.types.Opcode;
 import com.scaleton.dfinity.candid.types.Type;
 
 public final class TypeSerialize {
 	Map<Type, Integer> typeMap;
 	List<byte[]> typeTable;
-	List<Type> args;
+	List<IDLType> args;
 
 	byte[] result;
 
 	TypeSerialize() {
 		this.typeMap = new HashMap<Type, Integer>();
 		this.typeTable = new ArrayList<byte[]>();
-		this.args = new ArrayList<Type>();
+		this.args = new ArrayList<IDLType>();
 		this.result = ArrayUtils.EMPTY_BYTE_ARRAY;
 	}
 
-	void pushType(Type type) {
+	void pushType(IDLType type) {
 		this.args.add(type);
 		this.buildType(type);
 	}
 
-	void buildType(Type type) {
+	void buildType(IDLType type) {
 		if (typeMap.containsKey(type))
 			return;
 
-		Type actualType = type;
+		IDLType actualType = type;
 
-		if (actualType.isPrimitive())
+		if (actualType.getType().isPrimitive())
 			return;
 
 		Integer idx = this.typeTable.size();
 
-		this.typeMap.put(type, idx);
+		this.typeMap.put(type.getType(), idx);
 
 		byte[] buf = ArrayUtils.EMPTY_BYTE_ARRAY;
 
 		this.typeTable.add(ArrayUtils.EMPTY_BYTE_ARRAY);
 
-		switch (actualType) {
+		switch (actualType.getType()) {
 		case OPT:
-			for (Type innerType : actualType.getInnerTypes())
+			for (IDLType innerType : actualType.getInnerTypes())
 				this.buildType(innerType);
 			buf = ArrayUtils.addAll(buf, Leb128.writeSigned(Opcode.OPT.value));
-			for (Type innerType : actualType.getInnerTypes())
-				buf = ArrayUtils.addAll(buf, this.encode(innerType));
+			for (IDLType innerType : actualType.getInnerTypes())
+				buf = ArrayUtils.addAll(buf, this.encode(innerType.getType()));
 			break;
 		case VEC:
-			for (Type innerType : actualType.getInnerTypes())
+			for (IDLType innerType : actualType.getInnerTypes())
 				this.buildType(innerType);
 			buf = ArrayUtils.addAll(buf, Leb128.writeSigned(Opcode.VEC.value));
-			for (Type innerType : actualType.getInnerTypes())
-				buf = ArrayUtils.addAll(buf, this.encode(innerType));
+			for (IDLType innerType : actualType.getInnerTypes())
+				buf = ArrayUtils.addAll(buf, this.encode(innerType.getType()));
 			break;
 
 		}
@@ -141,8 +142,8 @@ public final class TypeSerialize {
 
 		byte[] tyEncode = ArrayUtils.EMPTY_BYTE_ARRAY;
 
-		for (Type type : args) {
-			tyEncode = ArrayUtils.addAll(tyEncode, this.encode(type));
+		for (IDLType idlType : args) {
+			tyEncode = ArrayUtils.addAll(tyEncode, this.encode(idlType.getType()));
 		}
 
 		this.result = ArrayUtils.addAll(this.result, tyEncode);

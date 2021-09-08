@@ -57,6 +57,7 @@ public final class IDLArgs {
 			args.add(value);
 		}
 		
+		de.done();	
 		
 		return new IDLArgs(args);			
 	}

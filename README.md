@@ -30,11 +30,16 @@ Dfinity Java Agent is available under Apache License 2.0.
 | Candid      | Java    |
 | :---------- | :---------- | 
 | bool   | Boolean | 
-|  int| Integer   | 
+| int| BigInteger   | 
 | int8   | Byte | 
 | int16   | Short | 
 | int32   | Integer | 
 | int64   | Long | 
+| nat| BigInteger   | 
+| nat8   | Byte | 
+| nat16   | Short | 
+| nat32   | Integer | 
+| nat64   | Long |
 | float32   | Float | 
 | float64   | Double | 
 | text   | String | 
@@ -223,6 +228,20 @@ https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.2/jar
 ```
 implementation 'com.scaleton.dfinity:dfinity-agent:0.5.2'
 ```
+
+## Dependencies
+
+This this is using these open source libraries
+
+### Apache HTTP Client V5
+To provide HTTP POST and GET operations.
+
+### Jackson CBOR Serializer and Deserializer
+To manage CBOR payloads.
+
+### Bouncy Castle Cryptography Libraries
+To manage Ed25519 and Secp256k1 signatures.
+
 
 # Build
 

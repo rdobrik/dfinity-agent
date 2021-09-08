@@ -3,6 +3,7 @@ package com.scaleton.dfinity.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -93,7 +94,7 @@ public class QueryTest extends MockTest{
 			// test integer argument
 			List<IDLValue> args = new ArrayList<IDLValue>();
 
-			Integer intValue =new Integer(10000);
+			BigInteger intValue =new BigInteger("10000");
 			
 			args.add(IDLValue.create(intValue));			
 			
@@ -114,7 +115,7 @@ public class QueryTest extends MockTest{
 				IDLArgs outArgs = IDLArgs.fromBytes(output);
 
 				LOG.info(outArgs.getArgs().get(0).getValue().toString());
-				Assertions.assertEquals(Integer.valueOf(intValue + 1),outArgs.getArgs().get(0).getValue());
+				Assertions.assertEquals(BigInteger.valueOf(intValue.longValue() + 1),outArgs.getArgs().get(0).getValue());
 			} catch (Throwable ex) {
 				LOG.debug(ex.getLocalizedMessage(), ex);
 				Assertions.fail(ex.getLocalizedMessage());
@@ -126,7 +127,7 @@ public class QueryTest extends MockTest{
 
 			args.add(IDLValue.create(value));
 
-			args.add(IDLValue.create(new Integer(1)));
+			args.add(IDLValue.create(new BigInteger("1")));
 
 			idlArgs = IDLArgs.create(args);
 
@@ -228,7 +229,7 @@ public class QueryTest extends MockTest{
 			
 			args = new ArrayList<IDLValue>();
 
-			Integer[] arrayValue = {10000,20000,30000};
+			BigInteger[] arrayValue = {new BigInteger("10000"),new BigInteger("20000"),new BigInteger("30000")};
 			
 			args.add(IDLValue.create(arrayValue));			
 			
@@ -244,19 +245,18 @@ public class QueryTest extends MockTest{
 
 				IDLArgs outArgs = IDLArgs.fromBytes(output);
 				
-				Integer[] arrayResponse = (Integer[])outArgs.getArgs().get(0).getValue();
+				BigInteger[] arrayResponse = (BigInteger[])outArgs.getArgs().get(0).getValue();
 
 				LOG.info(Integer.toString(arrayResponse.length));
 				Assertions.assertSame(arrayValue.length,arrayResponse.length);
 				
-				LOG.info(Integer.toString(arrayResponse[0]));
-				Assertions.assertEquals(arrayValue[0],arrayResponse[0]);
+				Assertions.assertArrayEquals(arrayValue, arrayResponse);
 				
-				LOG.info(Integer.toString(arrayResponse[1]));
-				Assertions.assertEquals(arrayValue[1],arrayResponse[1]);
+				LOG.info(arrayResponse[0].toString());
 				
-				LOG.info(Integer.toString(arrayResponse[2]));
-				Assertions.assertEquals(arrayValue[2],arrayResponse[2]);				
+				LOG.info(arrayResponse[1].toString());
+				
+				LOG.info(arrayResponse[2].toString());			
 			} catch (Throwable ex) {
 				LOG.debug(ex.getLocalizedMessage(), ex);
 				Assertions.fail(ex.getLocalizedMessage());
@@ -323,7 +323,7 @@ public class QueryTest extends MockTest{
 				IDLArgs outArgs = IDLArgs.fromBytes(output);
 
 				LOG.info(outArgs.getArgs().get(0).getValue().toString());
-				Assertions.assertEquals(Integer.valueOf(intValue + 1),outArgs.getArgs().get(0).getValue());
+				Assertions.assertEquals(BigInteger.valueOf(intValue.longValue() + 1),outArgs.getArgs().get(0).getValue());
 			} catch (Throwable ex) {
 				LOG.debug(ex.getLocalizedMessage(), ex);
 				Assertions.fail(ex.getLocalizedMessage());
@@ -340,11 +340,11 @@ public class QueryTest extends MockTest{
 			LOG.info(result);
 			Assertions.assertEquals("Hello, " + value + "!",result);
 			
-			Integer intResult = hello.getInt(intValue);
+			BigInteger intResult = hello.getInt(intValue);
 			
 			LOG.info(intResult.toString());
 			
-			Assertions.assertEquals(Integer.valueOf(intValue + 1),intResult);
+			Assertions.assertEquals(BigInteger.valueOf(intValue.longValue() + 1),intResult);
 			
 			hello.getFloat(doubleValue).whenComplete((output,ex) -> {
 				LOG.info(output.toString());

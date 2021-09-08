@@ -16,11 +16,173 @@
 
 package com.scaleton.dfinity.candid.types;
 
+import java.math.BigInteger;
+
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.scaleton.dfinity.candid.Bytes;
 
 public final class Numbers {
+	public static byte[] encodeBigNat(BigInteger value)
+	{
+		
+		byte[] result = ArrayUtils.EMPTY_BYTE_ARRAY;
+		
+		boolean done;
+		
+		do {
+			BigInteger bigByte = value.and(BigInteger.valueOf(0x7f)) ;
+			byte b = bigByte.byteValue();
+			
+			value = value.shiftRight(7);	
+			
+			done = (BigInteger.valueOf(0).equals(value));
+			
+			if(!done)
+				b |= 0x80;
+			
+			result = ArrayUtils.add(result,b);
+			
+		}
+		while(!done);
+		
+		return result;
+	}	
+	
+	public static BigInteger decodeBigNat(Bytes buf)
+	{
+		BigInteger result = BigInteger.valueOf(0);
+		
+		int shift = 0;
+		
+		byte b;
+		
+		do
+		{
+			b = buf.parseByte();
+			
+			BigInteger lowBits = BigInteger.valueOf(b & 0x7f);
+			
+			lowBits = lowBits.shiftLeft(shift);
+			
+			result = result.add(lowBits);
+			
+			shift += 7;
+			
+		}while((b & 0x80) != 0);
+
+		
+		return result;
+	}
+	
+	public static byte[] encodeBigInt(BigInteger value)
+	{
+		
+		byte[] result = ArrayUtils.EMPTY_BYTE_ARRAY;
+		
+		boolean done;
+		
+		do {
+			BigInteger bigByte = value.and(BigInteger.valueOf(255));
+
+			byte b = bigByte.byteValue();
+			
+			value = value.shiftRight(6);	
+			
+			done = (BigInteger.valueOf(0).equals(value) || BigInteger.valueOf(-1).equals(value));
+			
+			if(done)
+				b &= 0x7f;
+			else
+			{
+				value = value.shiftRight(1);
+				b |= 0x80;
+			}
+			
+			result = ArrayUtils.add(result,b);
+			
+		}
+		while(!done);
+		
+		return result;
+	}	
+	
+	public static BigInteger decodeBigInt(Bytes buf)
+	{
+		BigInteger result = BigInteger.valueOf(0);
+		
+		int shift = 0;
+		
+		byte b;
+		
+		do
+		{
+			b = buf.parseByte();
+			
+			BigInteger lowBits = BigInteger.valueOf(b & 0x7f);
+			
+			result = result.add(lowBits.shiftLeft(shift));
+			
+			shift += 7;
+			
+		}while((b & 0x80) != 0);
+		
+		
+		if((0x40 & b) == 0x40)
+			result = result.add( BigInteger.valueOf(-1).shiftLeft(shift));
+		
+		return result;
+	}	
+	
+	public static byte[] encodeNat(Integer value)
+	{
+		
+		byte[] result = ArrayUtils.EMPTY_BYTE_ARRAY;
+		
+		boolean done;
+		
+		do {
+			Integer bigByte = value & Integer.valueOf(0x7f);
+			byte b = bigByte.byteValue();
+			
+			value >>= 7;	
+			
+			done = (Integer.valueOf(0).equals(value));
+			
+			if(!done)
+				b |= 0x80;
+			
+			result = ArrayUtils.add(result,b);
+			
+		}
+		while(!done);
+		
+		return result;
+	}	
+	
+	public static Integer decodeNat(Bytes buf)
+	{
+		Integer result = Integer.valueOf(0);
+		
+		int shift = 0;
+		
+		byte b;
+		
+		do
+		{
+			b = buf.parseByte();
+			
+			Integer lowBits = Integer.valueOf(b & 0x7f);
+			
+			result |= lowBits << shift;
+			
+			shift += 7;
+			
+		}while((b & 0x80) != 0);
+
+		
+		return result;
+	}	
 	
 	public static byte[] encodeInt(Integer value)
 	{
@@ -79,6 +241,8 @@ public final class Numbers {
 		
 		return result;
 	}
+	
+	
 	
 	public static byte[] encodeLong(Long value)
 	{

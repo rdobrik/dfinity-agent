@@ -30,7 +30,7 @@ public final class IDLBuilder {
 	
 	public void valueArg(IDLValue value)
 	{
-		this.typeSer.pushType(value.getType());
+		this.typeSer.pushType(value.getIDLType());
 		
 		value.idlSerialize(valueSer);
 	}
@@ -39,7 +39,7 @@ public final class IDLBuilder {
 	{
 		IDLValue idlValue = IDLValue.create(value);
 		
-		this.typeSer.pushType(idlValue.getType());
+		this.typeSer.pushType(idlValue.getIDLType());
 		
 		idlValue.idlSerialize(valueSer);
 	}	
