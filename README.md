@@ -106,7 +106,7 @@ To pass arguments to the Internet Computer Canister methods
 ```
 List<IDLValue> args = new ArrayList<IDLValue>();
 
-Integer intValue =new Integer(10000);
+BigInteger intValue =new BigInteger("10000");
 			
 args.add(IDLValue.create(intValue));			
 			
@@ -183,11 +183,11 @@ Additionally you can also use Dynamic Proxy Class with facade Java interface tha
 public interface HelloProxy {
 	
 	@QUERY
-	public String peek(@Argument(Type.TEXT)String name, @Argument(Type.INT) Integer value);
+	public String peek(@Argument(Type.TEXT)String name, @Argument(Type.INT) BigInteger value);
 	
 	@QUERY
 	@Name("echoInt")
-	public Integer getInt(Integer value);	
+	public BigInteger getInt(BigInteger value);	
 	
 	@QUERY
 	public CompletableFuture<Double> getFloat(Double value);
