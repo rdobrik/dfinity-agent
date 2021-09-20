@@ -178,6 +178,27 @@ public final class CandidTest {
 		// String (text)
 		assertValue("DIDL\\00\\01\\71\\00", new String(""));
 		
+		// Principal 
+		assertValue("DIDL\\00\\01\\68\\01\\00",Principal.fromString("aaaaa-aa"));
+		assertValue("DIDL\\00\\01\\68\\01\\03\\ca\\ff\\ee",Principal.fromString("w7x7r-cok77-xa"));
+		assertValue("DIDL\\00\\01\\68\\01\\09\\ef\\cd\\ab\\00\\00\\00\\00\\00\\01",Principal.fromString("2chl6-4hpzw-vqaaa-aaaaa-c"));
+//		assertValue("DIDL\\00\\01\\68\\01\\02\\ca\\ff",Principal.fromString("w7x7r-cok77-xa"));	
+		assertFail("DIDL\\00\\01\\68\\03\\ca\\ff\\ee", CandidError.class, "principal: no tag" );
+		assertFail("DIDL\\00\\01\\68\\01\\03\\ca\\ff", CandidError.class, "principal: too short" );
+		assertFail("DIDL\\00\\01\\68\\01\\03\\ca\\ff\\ee\\ee", CandidError.class, "principal: too long" );
+		assertFail("DIDL\\01\\68\\01\\00\\01\\03\\ca\\ff\\ee", CandidError.class, "principal: not construct" );
+		
+		// Opt
+		assertValue("DIDL\\00\\01\\7f",null);
+		
+		// TODO fix this, this is tricky, because we cannot identify type of empty inner class
+		//assertValue("DIDL\\01\\6e\\6f\\01\\00\\00",Optional.empty());
+		assertValue("DIDL\\01\\6e\\7e\\01\\00\\01\\00",Optional.of(new Boolean(false)));
+		assertValue("DIDL\\01\\6e\\7e\\01\\00\\01\\01",Optional.of(new Boolean(true)));
+		assertFail("DIDL\\01\\6e\\7e\\01\\00\\01\\02", CandidError.class, "opt: parsing invalid bool at opt bool" );
+		//assertValue("DIDL\\01\\6e\\7e\\01\\00\\00",Optional.empty());
+		
+		
 		// test big integer argument
 		List<IDLValue> args = new ArrayList<IDLValue>();
 

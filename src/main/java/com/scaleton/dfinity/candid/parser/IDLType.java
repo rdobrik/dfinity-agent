@@ -35,8 +35,11 @@ public final class IDLType {
 	void addInnerType(Object value) {
 		if (value == null)
 			return;
-		else if (value instanceof Optional)
-			this.innerTypes.add(IDLType.createType(((Optional) value).get()));
+		if (value instanceof Optional)
+		{
+			if( ((Optional) value).isPresent())
+				this.innerTypes.add(IDLType.createType(((Optional) value).get()));
+		}
 		else if (value.getClass().isArray()) {
 			Class clazz = ((Object[]) value).getClass().getComponentType();
 			this.innerTypes.add(IDLType.createType(clazz));

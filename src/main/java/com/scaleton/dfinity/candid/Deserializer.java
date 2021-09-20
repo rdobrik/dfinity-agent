@@ -26,6 +26,7 @@ import java.util.Optional;
 import com.scaleton.dfinity.candid.parser.IDLValue;
 import com.scaleton.dfinity.candid.types.Numbers;
 import com.scaleton.dfinity.candid.types.Opcode;
+import com.scaleton.dfinity.candid.types.Type;
 import com.scaleton.dfinity.types.Principal;
 
 public final class Deserializer{
@@ -96,7 +97,9 @@ public final class Deserializer{
 		case OPT:
 			return this.deserializeOpt();
 		case VEC:
-			return this.deserializeVec();	
+			return this.deserializeVec();
+		case RESERVED:
+			return this.deserializeReserved();			
 		case PRINCIPAL:
 			return this.deserializePrincipal();			
 		default:
@@ -330,6 +333,14 @@ public final class Deserializer{
 		
 		return IDLValue.create(value);
 			
+	}
+	
+	public IDLValue deserializeReserved() {
+		this.recordNestingDepth = 0;
+		this.table.checkType(Opcode.RESERVED);
+		
+		// TODO need to figure out deserializing reserve value, for now we create emply Object
+		return IDLValue.create(new Object(), Type.RESERVED);	
 	}
 	
 	Object[] toArray(List value)

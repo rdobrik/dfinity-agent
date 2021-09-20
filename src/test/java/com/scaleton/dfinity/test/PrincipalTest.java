@@ -30,6 +30,10 @@ public class PrincipalTest {
 			principal = Principal.fromString(TestProperties.CANISTER_ID);
 
 			Assertions.assertEquals(principal.toString(), TestProperties.CANISTER_ID);
+			
+			principal = Principal.fromString("w7x7r-cok77-xa");
+
+			Assertions.assertEquals(principal.toString(),"w7x7r-cok77-xa");	
 
 			ObjectMapper objectMapper = new ObjectMapper(new CBORFactory());
 			objectMapper.registerModule(new Jdk8Module());

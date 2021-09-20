@@ -24,7 +24,8 @@ final class TestProperties extends Properties{
 	static String FORWARD_PORT_PROPERTY = "forwardPort";
 	static String STORE_PROPERTY = "store";
 	static String STORE_PATH_PROPERTY = "storePath";
-
+	static String IC_URL_PROPERTY = "icUrl";
+	static String IC_CANISTER_ID_PROPERTY = "icCanisterId";
 
 	protected static Integer MOCK_PORT = 8777;
 	
@@ -37,6 +38,9 @@ final class TestProperties extends Properties{
 	protected static String STORE_PATH = "/tmp";	
 	
 	protected static String CANISTER_ID = "rrkah-fqaaa-aaaaa-aaaaq-cai";
+	
+	protected static String IC_URL;
+	protected static String IC_CANISTER_ID;	
 	
 	protected static String CBOR_STATUS_RESPONSE_FILE = "cbor.status.response";
 	
@@ -70,7 +74,8 @@ final class TestProperties extends Properties{
 			FORWARD_HOST = props.getProperty(FORWARD_HOST_PROPERTY, "localhost");
 			FORWARD_PORT = Integer.valueOf(props.getProperty(FORWARD_PORT_PROPERTY, "8000"));
 			STORE = Boolean.valueOf(props.getProperty(STORE_PROPERTY, "false"));
-			STORE_PATH = props.getProperty(STORE_PATH_PROPERTY, "localhost");
+			IC_URL = props.getProperty(IC_URL_PROPERTY);
+			IC_CANISTER_ID = props.getProperty(IC_CANISTER_ID_PROPERTY);
 			
 		} catch (IOException e) {
 			LOG.error(e.getLocalizedMessage(), e);

@@ -136,7 +136,8 @@ public final class Principal implements Cloneable {
 			output = makeAsciiLowerCase(output);
 
 			// remove padding
-			output = StringUtils.stripEnd(output.replaceAll("(.{5})", "$1-"), "=");
+			output = StringUtils.stripEnd(output, "=");
+			output = output.replaceAll("(.{5})", "$1-");
 			return output;
 		} else
 			return new String();
@@ -151,6 +152,22 @@ public final class Principal implements Cloneable {
 		
 		return clone;
 		
+	}
+	
+	public boolean equals(Object obj)
+	{
+		if(obj == null)
+			return false;
+		
+		if(!(obj instanceof Principal))
+			return false;
+		
+		Principal value = (Principal)obj;
+		
+		if(this.toString() == null && value.toString() == null)
+			return true;
+		
+		return this.toString().equals(value.toString());
 	}
 
 	static byte[] concatByteArrays(byte[] first, byte[] second) {

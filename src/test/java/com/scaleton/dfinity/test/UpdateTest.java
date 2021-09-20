@@ -108,7 +108,7 @@ public class UpdateTest extends MockTest {
 
 				LOG.debug("Request Id:" + requestId.toHexString());
 
-				TimeUnit.SECONDS.sleep(5);
+				TimeUnit.SECONDS.sleep(10);
 
 				if (!TestProperties.FORWARD) {
 					// get hard coded request id if we use mock response file
