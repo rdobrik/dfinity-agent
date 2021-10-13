@@ -21,6 +21,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 
 import com.scaleton.dfinity.candid.types.Opcode;
@@ -65,7 +66,30 @@ public final class TypeTable {
 				ty = bytes.leb128ReadSigned();
 				validateTypeRange(ty, len);
 				buf.add(ty);
-			} else {
+			}else if (ty == Opcode.RECORD.value || ty == Opcode.VARIANT.value) {
+				Integer objLen = bytes.leb128Read();
+				buf.add(objLen);
+				
+				Optional<Integer> prevHash = Optional.empty();
+				
+				for (int j = 0; j < objLen; j++)
+				{
+					Integer hash = bytes.leb128Read();
+					
+					if(prevHash.isPresent())
+					{
+						if(prevHash.get() >= hash)
+							throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Field id collision or not sorted");
+					}
+					
+					prevHash = Optional.of(hash);				
+					buf.add(hash);
+					ty = bytes.leb128ReadSigned();
+					validateTypeRange(ty, len);
+					buf.add(ty);
+				}
+			}
+			else {
 				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unsupported op_code %d in type table", ty));
 			}
 			
@@ -78,7 +102,6 @@ public final class TypeTable {
 			int ty = bytes.leb128ReadSigned();
 			validateTypeRange(ty, table.size());
 			types.add(ty);
-
 		}
 
 		TypeTable typeTable = new TypeTable(table, types, new LinkedList<Integer>());

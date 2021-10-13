@@ -17,6 +17,7 @@
 package com.scaleton.dfinity.candid.parser;
 
 import java.math.BigInteger;
+import java.util.Map;
 import java.util.Optional;
 
 import com.scaleton.dfinity.candid.Deserialize;
@@ -33,7 +34,18 @@ public final class IDLValue implements Deserialize{
 	{
 		IDLValue idlValue = new IDLValue();
 		
-		idlValue.idlType = IDLType.createType(type);
+		idlValue.idlType = IDLType.createType(value, type);
+			
+		idlValue.value = Optional.ofNullable(value);
+		
+		return idlValue;
+	}	
+	
+	public static IDLValue create(Object value, IDLType idlType)
+	{
+		IDLValue idlValue = new IDLValue();
+		
+		idlValue.idlType = idlType;
 			
 		idlValue.value = Optional.ofNullable(value);
 		
@@ -105,6 +117,12 @@ public final class IDLValue implements Deserialize{
 			break;
 		case VEC:
 			serializer.serializeVec((Object[])value.get());
+			break;
+		case RECORD:
+			serializer.serializeRecord(value.get());
+			break;	
+		case VARIANT:
+			serializer.serializeVariant(value.get());
 			break;
 		case PRINCIPAL:
 			serializer.serializePrincipal((Principal) value.get());

@@ -62,6 +62,28 @@ public final class IDLArgs {
 		return new IDLArgs(args);			
 	}
 	
+	public static IDLArgs fromBytes(byte[] bytes, IDLType[] idlTypes)
+	{
+		if(idlTypes == null)
+			return fromBytes(bytes);
+		
+		IDLDeserialize de = IDLDeserialize.create(bytes);
+		
+		List<IDLValue> args = new ArrayList<IDLValue>();
+		
+		for(int i = 0; i < idlTypes.length; i++)
+		{
+			de.setExpectedType(idlTypes[i]);
+			
+			IDLValue value = de.getValue(IDLValue.class);
+			args.add(value);
+		}
+		
+		de.done();	
+		
+		return new IDLArgs(args);			
+	}
+	
 	public List<IDLValue> getArgs()
 	{
 		return this.args;

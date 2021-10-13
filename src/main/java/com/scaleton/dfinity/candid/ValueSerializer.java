@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -208,13 +209,39 @@ public final class ValueSerializer implements Serializer{
 		
 	}
 	
-	void serializeElement(Object value) {
+	
+
+	@Override
+	public void serializeRecord(Object value) {
+		if(value instanceof Map)
+			for(Object element : ((Map) value).values())
+				this.serializeElement(element);	
+	}
+
+	@Override
+	public void serializeVariant(Object value) {
+		int idx = 0;
 		
+		if(value instanceof Map)
+			if(!((Map) value).isEmpty())
+			{
+				byte[] leb128 = Leb128.writeUnsigned(idx);
+		    	
+		    	this.value = ArrayUtils.addAll(this.value,leb128);
+		    	
+				Object element = ((Map) value).values().iterator().next();
+				this.serializeElement(element);	
+			}
 	}
 	
 	byte[] getResult()
 	{
 		return this.value;
-	}	
+	}
+	
+	void serializeElement(Object value) {
+		IDLValue idlValue = IDLValue.create(value);
+		idlValue.idlSerialize(this);
+	}
 
 }

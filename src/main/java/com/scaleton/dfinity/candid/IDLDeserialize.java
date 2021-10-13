@@ -16,6 +16,10 @@
 
 package com.scaleton.dfinity.candid;
 
+import java.util.Optional;
+
+import com.scaleton.dfinity.candid.parser.IDLType;
+
 public final class IDLDeserialize {
 	Deserializer de;
 	
@@ -56,6 +60,11 @@ public final class IDLDeserialize {
 		else
 			throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Trailing type after deserializing a value");
 		
+	}
+	
+	public void setExpectedType(IDLType expectedType)
+	{
+		this.de.expectedType = Optional.of(expectedType);
 	}
 	
 	public boolean isDone()

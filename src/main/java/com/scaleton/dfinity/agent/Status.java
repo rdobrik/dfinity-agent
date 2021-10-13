@@ -59,6 +59,12 @@ public class Status {
     */
 	@JsonProperty("impl_revision")
     public Optional<String> implRevision;
+	
+    /**
+    * Optional.  The health status of the replica.  One hopes it's "healthy".
+    */
+	@JsonProperty("replica_health_status")
+    public Optional<String> replicaHealthStatus;	
 
     /**
     * Optional.  The root (public) key used to verify certificates.

@@ -330,10 +330,8 @@ public class QueryTest extends MockTest{
 			}
 			
 			// test ProxyBuilder
-			
-			//Hello hello = ProxyBuilder.create(agent, Principal.fromString(TestProperties.CANISTER_ID)).getProxy(Hello.class);
-			
-			HelloProxy hello = ProxyBuilder.create().getProxy(HelloProxy.class);
+						
+			HelloProxy hello = ProxyBuilder.create(agent, Principal.fromString(TestProperties.CANISTER_ID)).getProxy(HelloProxy.class);
 			
 			String result = hello.peek(value, intValue);
 			

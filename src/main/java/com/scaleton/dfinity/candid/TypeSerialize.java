@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.scaleton.dfinity.candid.parser.IDLType;
+import com.scaleton.dfinity.candid.types.Label;
 import com.scaleton.dfinity.candid.types.Opcode;
 import com.scaleton.dfinity.candid.types.Type;
 
@@ -65,19 +66,53 @@ public final class TypeSerialize {
 
 		switch (actualType.getType()) {
 		case OPT:
-			for (IDLType innerType : actualType.getInnerTypes())
-				this.buildType(innerType);
+			IDLType innerType =actualType.getInnerType();
+			this.buildType(innerType);
 			buf = ArrayUtils.addAll(buf, Leb128.writeSigned(Opcode.OPT.value));
-			for (IDLType innerType : actualType.getInnerTypes())
-				buf = ArrayUtils.addAll(buf, this.encode(innerType.getType()));
+			buf = ArrayUtils.addAll(buf, this.encode(innerType.getType()));
 			break;
 		case VEC:
-			for (IDLType innerType : actualType.getInnerTypes())
-				this.buildType(innerType);
+			innerType =actualType.getInnerType();
+			this.buildType(innerType);			
 			buf = ArrayUtils.addAll(buf, Leb128.writeSigned(Opcode.VEC.value));
-			for (IDLType innerType : actualType.getInnerTypes())
-				buf = ArrayUtils.addAll(buf, this.encode(innerType.getType()));
+			buf = ArrayUtils.addAll(buf, this.encode(innerType.getType()));
 			break;
+		case RECORD:
+			Map<Label,IDLType> typeMap = actualType.getTypeMap();
+			
+			for(IDLType idlType : typeMap.values())
+				this.buildType(idlType);
+				
+			buf = ArrayUtils.addAll(buf, Leb128.writeSigned(Opcode.RECORD.value));
+			buf = ArrayUtils.addAll(buf, Leb128.writeUnsigned(typeMap.size()));
+
+			for(Label label : typeMap.keySet())	
+			{
+				buf = ArrayUtils.addAll(buf, Leb128.writeUnsigned(label.getId()));
+				
+				IDLType idlType = typeMap.get(label);
+				buf = ArrayUtils.addAll(buf, this.encode(idlType.getType()));			
+			}
+
+			break;	
+		case VARIANT:
+			typeMap = actualType.getTypeMap();
+			
+			for(IDLType idlType : typeMap.values())
+				this.buildType(idlType);
+				
+			buf = ArrayUtils.addAll(buf, Leb128.writeSigned(Opcode.VARIANT.value));
+			buf = ArrayUtils.addAll(buf, Leb128.writeUnsigned(typeMap.size()));
+
+			for(Label label : typeMap.keySet())	
+			{
+				buf = ArrayUtils.addAll(buf, Leb128.writeUnsigned(label.getId()));
+				
+				IDLType idlType = typeMap.get(label);
+				buf = ArrayUtils.addAll(buf, this.encode(idlType.getType()));			
+			}
+
+			break;			
 
 		}
 
@@ -117,7 +152,7 @@ public final class TypeSerialize {
 		case RESERVED:
 			return Leb128.writeSigned(Opcode.RESERVED.value);
 		case TEXT:
-			return Leb128.writeSigned(Opcode.TEXT.value);
+			return Leb128.writeSigned(Opcode.TEXT.value);		
 		case EMPTY:
 			return Leb128.writeSigned(Opcode.EMPTY.value);
 		case PRINCIPAL:

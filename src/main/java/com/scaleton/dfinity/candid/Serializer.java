@@ -17,6 +17,7 @@
 package com.scaleton.dfinity.candid;
 
 import java.math.BigInteger;
+import java.util.Map;
 import java.util.Optional;
 
 import com.scaleton.dfinity.types.Principal;
@@ -55,6 +56,10 @@ public interface Serializer {
 	public void serializeOpt(Optional<?> value);
 	
 	public <T> void serializeVec(T[] value);	
+	
+	public void serializeRecord(Object value);
+	
+	public void serializeVariant(Object value);
 	
 	public void serializePrincipal(Principal value);
 

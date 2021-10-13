@@ -17,33 +17,54 @@
 package com.scaleton.dfinity.candid.parser;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
+import com.scaleton.dfinity.candid.CandidError;
+import com.scaleton.dfinity.candid.types.Label;
 import com.scaleton.dfinity.candid.types.Type;
 import com.scaleton.dfinity.types.Principal;
 
 public final class IDLType {
 	Type type;
-	List<IDLType> innerTypes;
+	IDLType innerType;
+	
+	Map<Label,IDLType> typeMap = new HashMap<Label,IDLType>();;
 
-	IDLType() {
-		innerTypes = new ArrayList<IDLType>();
-	}
 
-	void addInnerType(Object value) {
+	void addInnerTypes(Object value) {
 		if (value == null)
 			return;
 		if (value instanceof Optional)
 		{
 			if( ((Optional) value).isPresent())
-				this.innerTypes.add(IDLType.createType(((Optional) value).get()));
+				this.innerType = IDLType.createType(((Optional) value).get());
 		}
 		else if (value.getClass().isArray()) {
 			Class clazz = ((Object[]) value).getClass().getComponentType();
-			this.innerTypes.add(IDLType.createType(clazz));
+			this.innerType = IDLType.createType(clazz);
 		}
+		else if (value instanceof Map)
+		{
+			
+			this.typeMap = new HashMap<Label,IDLType>();
+			
+			for(Object key : ((Map) value).keySet())
+			{
+				Label label;
+				if(key instanceof String)
+					label = Label.createNamedLabel((String)key);
+				else if(key instanceof Integer)
+					label = Label.createIdLabel((Integer)key);
+				else
+					throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Invalid Map Key");
+				
+				IDLType idlType = IDLType.createType(((Map) value).get(key));
+				
+				this.typeMap.put(label, idlType);	
+			}
+		}		
 
 	}
 
@@ -52,7 +73,7 @@ public final class IDLType {
 			return;
 		else if (clazz.isArray()) {
 			clazz = clazz.getComponentType();
-			this.innerTypes.add(IDLType.createType(clazz));
+			this.innerType = IDLType.createType(clazz);
 		}
 
 	}
@@ -65,11 +86,37 @@ public final class IDLType {
 		return idlType;
 	}
 
-	public static IDLType createType(Type type, List<IDLType> innerTypes) {
+	public static IDLType createType(Type type, IDLType innerType) {
 		IDLType idlType = new IDLType();
 
 		idlType.type = type;
-		idlType.innerTypes = innerTypes;
+		
+		if(type == Type.OPT || type == Type.VEC)
+			if(innerType != null)
+				idlType.innerType = innerType;
+
+		return idlType;
+	}
+	
+	public static IDLType createType(Type type, Map<Label,IDLType> typeMap) {
+		IDLType idlType = new IDLType();
+
+		idlType.type = type;
+		
+		
+		if(type == Type.RECORD || type == Type.VARIANT)
+			if(typeMap != null)
+				idlType.typeMap = typeMap;
+
+		return idlType;
+	}
+	
+	public static IDLType createType(Object value, Type type) {
+		IDLType idlType = new IDLType();
+
+		idlType.type = type;
+		
+		idlType.addInnerTypes(value);
 
 		return idlType;
 	}
@@ -104,10 +151,12 @@ public final class IDLType {
 			idlType.type = Type.OPT;
 		else if (value.getClass().isArray())
 			idlType.type = Type.VEC;
+		else if (value instanceof Map)
+			idlType.type = Type.RECORD;		
 		else if (value instanceof Principal)
 			idlType.type = Type.PRINCIPAL;
 
-		idlType.addInnerType(value);
+		idlType.addInnerTypes(value);
 
 		return idlType;
 
@@ -153,8 +202,13 @@ public final class IDLType {
 		return this.type;
 	}
 
-	public List<IDLType> getInnerTypes() {
-		return this.innerTypes;
+	public IDLType getInnerType() {
+		return this.innerType;
+	}
+	
+	public Map<Label,IDLType> getTypeMap()
+	{
+		return this.typeMap;
 	}
 
 }
