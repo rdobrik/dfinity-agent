@@ -51,11 +51,13 @@ public final class ValueSerializer implements Serializer{
 	
 	public final void serializeText(String value)
     {
-    	byte[] leb128 = Leb128.writeUnsigned(value.length());
+		byte[] stringBytes = value.getBytes();
+		
+    	byte[] leb128 = Leb128.writeUnsigned(stringBytes.length);
     	
     	this.value = ArrayUtils.addAll(this.value,leb128);
     	
-    	this.value = ArrayUtils.addAll(this.value,value.getBytes()); 	
+    	this.value = ArrayUtils.addAll(this.value,stringBytes); 	
     }
 	
 	public final void serializeNat(BigInteger value)

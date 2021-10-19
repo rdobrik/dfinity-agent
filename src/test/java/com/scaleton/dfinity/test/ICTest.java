@@ -9,7 +9,9 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +37,7 @@ import com.scaleton.dfinity.agent.identity.Identity;
 import com.scaleton.dfinity.agent.identity.Secp256k1Identity;
 import com.scaleton.dfinity.agent.requestid.RequestId;
 import com.scaleton.dfinity.candid.parser.IDLArgs;
+import com.scaleton.dfinity.candid.parser.IDLType;
 import com.scaleton.dfinity.candid.parser.IDLValue;
 import com.scaleton.dfinity.types.Principal;
 
@@ -130,7 +133,49 @@ public class ICTest {
 				} catch (Throwable ex) {
 					LOG.debug(ex.getLocalizedMessage(), ex);
 					Assertions.fail(ex.getLocalizedMessage());
-				}				
+				}
+				
+				// Record
+				Map<String, Object> mapValue = new HashMap<String, Object>();
+
+				mapValue.put("bar", new Boolean(true));
+
+				mapValue.put("foo", BigInteger.valueOf(42));
+				
+				args = new ArrayList<IDLValue>();
+
+				IDLValue idlValue = IDLValue.create(mapValue);
+				
+				args.add(idlValue);
+
+				idlArgs = IDLArgs.create(args);
+
+				buf = idlArgs.toBytes();
+				
+				queryResponse = agent.queryRaw(Principal.fromString(TestProperties.IC_CANISTER_ID),
+						Principal.fromString(TestProperties.IC_CANISTER_ID), "echoRecord", buf, Optional.empty());
+
+				try {
+					byte[] queryOutput = queryResponse.get();
+					
+					IDLType[] idlTypes = { idlValue.getIDLType() };
+
+					outArgs = IDLArgs.fromBytes(queryOutput,idlTypes);
+
+					LOG.info(outArgs.getArgs().get(0).getValue().toString());
+					Assertions.assertEquals(mapValue,outArgs.getArgs().get(0).getValue());
+				} catch (Throwable ex) {
+					LOG.debug(ex.getLocalizedMessage(), ex);
+					Assertions.fail(ex.getLocalizedMessage());
+				}	
+				
+				args = new ArrayList<IDLValue>();
+
+				args.add(IDLValue.create(new String(stringValue)));
+
+				idlArgs = IDLArgs.create(args);
+
+				buf = idlArgs.toBytes();
 
 				UpdateBuilder updateBuilder = UpdateBuilder
 						.create(agent, Principal.fromString(TestProperties.IC_CANISTER_ID), "greet").arg(buf);

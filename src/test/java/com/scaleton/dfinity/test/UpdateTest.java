@@ -159,10 +159,10 @@ public class UpdateTest extends MockTest {
 				// test ProxyBuilder
 								
 				HelloProxy hello = ProxyBuilder.create(agent, Principal.fromString(TestProperties.CANISTER_ID)).getProxy(HelloProxy.class);
-				
-				CompletableFuture<String> proxyResponse = hello.greet(value);
-				
+
 				if (TestProperties.FORWARD) {
+					CompletableFuture<String> proxyResponse = hello.greet(value);
+				
 					String output = proxyResponse.get();
 					LOG.info(output);
 					Assertions.assertEquals(output,"Hello, " + value + "!");

@@ -49,6 +49,7 @@ final class TestProperties extends Properties{
 	protected static String CBOR_ECHOFLOAT_QUERY_RESPONSE_FILE = "cbor.echoFloat.query.response";
 	protected static String CBOR_ECHOOPT_QUERY_RESPONSE_FILE = "cbor.echoOption.query.response";
 	protected static String CBOR_ECHOVEC_QUERY_RESPONSE_FILE = "cbor.echoVec.query.response";
+	protected static String CBOR_ECHORECORD_QUERY_RESPONSE_FILE = "cbor.echoRecord.query.response";
 	protected static String CBOR_ECHOPRINCIPAL_QUERY_RESPONSE_FILE = "cbor.echoPrincipal.query.response";	
 
 	protected static String CBOR_PEEK_QUERY_RESPONSE_FILE = "cbor.peek.query.response";

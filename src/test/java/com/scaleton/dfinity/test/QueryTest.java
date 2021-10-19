@@ -15,6 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +40,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.scaleton.dfinity.agent.Agent;
 import com.scaleton.dfinity.agent.AgentBuilder;
 import com.scaleton.dfinity.agent.AgentError;
+import com.scaleton.dfinity.agent.ByteUtils;
 import com.scaleton.dfinity.agent.ProxyBuilder;
 import com.scaleton.dfinity.agent.QueryBuilder;
 import com.scaleton.dfinity.agent.ReplicaTransport;
@@ -49,6 +51,7 @@ import com.scaleton.dfinity.agent.identity.Secp256k1Identity;
 import com.scaleton.dfinity.agent.replicaapi.Envelope;
 import com.scaleton.dfinity.agent.replicaapi.QueryResponse;
 import com.scaleton.dfinity.candid.parser.IDLArgs;
+import com.scaleton.dfinity.candid.parser.IDLType;
 import com.scaleton.dfinity.candid.parser.IDLValue;
 import com.scaleton.dfinity.types.Principal;
 
@@ -286,6 +289,41 @@ public class QueryTest extends MockTest{
 			} catch (Throwable ex) {
 				LOG.debug(ex.getLocalizedMessage(), ex);
 				Assertions.fail(ex.getLocalizedMessage());
+			}	
+			
+			// test record
+			
+			Map<String, Object> mapValue = new HashMap<String, Object>();
+
+			mapValue.put("bar", new Boolean(true));
+
+			mapValue.put("foo", BigInteger.valueOf(42));
+			
+			args = new ArrayList<IDLValue>();
+			
+			IDLValue idlValue = IDLValue.create(mapValue);
+			
+			args.add(idlValue);
+
+			idlArgs = IDLArgs.create(args);
+
+			buf = idlArgs.toBytes();
+			
+			response = agent.queryRaw(Principal.fromString(TestProperties.CANISTER_ID),
+					Principal.fromString(TestProperties.CANISTER_ID), "echoRecord", buf, Optional.empty());
+
+			try {
+				byte[] output = response.get();
+				
+				IDLType[] idlTypes = { idlValue.getIDLType() };
+
+				IDLArgs outArgs = IDLArgs.fromBytes(output,idlTypes);
+
+				LOG.info(outArgs.getArgs().get(0).getValue().toString());
+				Assertions.assertEquals(mapValue,outArgs.getArgs().get(0).getValue());
+			} catch (Throwable ex) {
+				LOG.debug(ex.getLocalizedMessage(), ex);
+				Assertions.fail(ex.getLocalizedMessage());
 			}			
 
 			// test invalid method name
@@ -405,6 +443,9 @@ public class QueryTest extends MockTest{
 						 case "echoVec":
 							 responseFileName = TestProperties.CBOR_ECHOVEC_QUERY_RESPONSE_FILE;							 
 							 break;
+						 case "echoRecord":
+							 responseFileName = TestProperties.CBOR_ECHORECORD_QUERY_RESPONSE_FILE;							 
+							 break;							 
 						 case "echoPrincipal":
 							 responseFileName = TestProperties.CBOR_ECHOPRINCIPAL_QUERY_RESPONSE_FILE;							 
 							 break;								 

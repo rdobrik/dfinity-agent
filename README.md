@@ -17,7 +17,7 @@ and it's using Dfinity Rust agent as an inspiration, using similar package struc
 https://github.com/dfinity/agent-rs
 </a>
 
-Currently we support query and update (call) operations with primitive types, arrays, option and principal type. Record and Variant types support is in development.
+Currently we support query and update (call) operations with primitive types, arrays, option and principal type. Early access to variand and record types. 
 
 # License
 
@@ -46,6 +46,8 @@ Dfinity Java Agent is available under Apache License 2.0.
 | opt   | Optional | 
 | principal   | Principal | 
 | vec   | array | 
+| record   | Map | 
+| variant   | Map | 
 | null   |Null | 
 
 ## Supported Identities

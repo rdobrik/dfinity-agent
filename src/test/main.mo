@@ -1,7 +1,10 @@
-import Principal "mo:base/Principal";
-
 actor {
     stable var name = "Me";
+
+    type Entry = {
+        bar : Bool;
+        foo : Int;
+    };
 
     public func greet(value : Text) : async Text {
         name := value;
@@ -41,6 +44,10 @@ actor {
     };
 
     public shared query func echoPrincipal( value : Principal) : async Principal {
+        return value;
+    };  
+
+     public shared query func echoRecord( value : Entry) : async Entry {
         return value;
     };                   
 };

@@ -16,7 +16,6 @@ import org.opentest4j.AssertionFailedError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.scaleton.dfinity.agent.ByteUtils;
 import com.scaleton.dfinity.candid.CandidError;
 import com.scaleton.dfinity.candid.parser.IDLArgs;
 import com.scaleton.dfinity.candid.parser.IDLType;
@@ -30,32 +29,6 @@ public final class CandidTest {
 	@Test
 	public void test() {
 		// testing record, move it after
-
-		try {
-			Map<Integer, Object> variantValue = new HashMap<Integer, Object>();
-
-			variantValue.put(new Integer(3303859), "value");
-
-			IDLValue idlValue = IDLValue.create(variantValue, Type.VARIANT);
-
-			List<IDLValue> args = new ArrayList<IDLValue>();
-
-			args.add(idlValue);
-
-			IDLArgs idlArgs = IDLArgs.create(args);
-
-			byte[] buf = idlArgs.toBytes();
-
-			int[] unsignedBuf = ByteUtils.toUnsignedIntegerArray(buf);
-
-			IDLType[] types = { idlValue.getIDLType() };
-
-			IDLArgs outArgs = IDLArgs.fromBytes(buf, types);
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
 		// fundamentaly wrong
 		assertFail("", CandidError.class, "empty");
@@ -210,6 +183,8 @@ public final class CandidTest {
 
 		// String (text)
 		assertValue("DIDL\\00\\01\\71\\00", new String(""));
+		assertValue("DIDL\\00\\01\\71\\06", "Motoko", new String("Motoko"));
+		assertValue("DIDL\\00\\01\\71\\03\\e2\\98\\83", new String("☃"));
 
 		// Principal
 		assertValue("DIDL\\00\\01\\68\\01\\00", Principal.fromString("aaaaa-aa"));
@@ -233,28 +208,57 @@ public final class CandidTest {
 		assertFail("DIDL\\01\\6e\\7e\\01\\00\\01\\02", CandidError.class, "opt: parsing invalid bool at opt bool");
 		// assertValue("DIDL\\01\\6e\\7e\\01\\00\\00",Optional.empty());
 
-		
 		// Record
 		Map<String, Object> mapValue = new HashMap<String, Object>();
+
+		assertValue("DIDL\\01\\6c\\00\\01\\00", mapValue);
 
 		mapValue.put("bar", new Boolean(true));
 
 		mapValue.put("foo", BigInteger.valueOf(42));
-		
+
 		assertValue("DIDL\\01\\6c\\02\\d3\\e3\\aa\\02\\7e\\86\\8e\\b7\\02\\7c\\01\\00\\01\\2a", mapValue);
 
-		// test big integer argument
+		Map<Integer, Object> intMapValue = new HashMap<Integer, Object>();
+
+		intMapValue.put(new Integer(1), BigInteger.valueOf(42));
+
+		assertValue("DIDL\\01\\6c\\01\\01\\7c\\01\\00\\2a", intMapValue);
+
+		// Variant
+
+		Map<Integer, Object> variantValue = new HashMap<Integer, Object>();
+
+		variantValue.put(new Integer(3303859), "value");
+
+		IDLValue idlValue = IDLValue.create(variantValue, Type.VARIANT);
+
 		List<IDLValue> args = new ArrayList<IDLValue>();
 
-		BigInteger bigintValue = new BigInteger("1234567890");
-
-		args.add(IDLValue.create(bigintValue));
+		args.add(idlValue);
 
 		IDLArgs idlArgs = IDLArgs.create(args);
 
 		byte[] buf = idlArgs.toBytes();
 
-		IDLArgs outArgs = IDLArgs.fromBytes(buf);
+		IDLType[] types = { idlValue.getIDLType() };
+
+		IDLArgs outArgs = IDLArgs.fromBytes(buf, types);
+
+		Assertions.assertEquals(variantValue, outArgs.getArgs().get(0).getValue());
+
+		// test big integer argument
+		args = new ArrayList<IDLValue>();
+
+		BigInteger bigintValue = new BigInteger("1234567890");
+
+		args.add(IDLValue.create(bigintValue));
+
+		idlArgs = IDLArgs.create(args);
+
+		buf = idlArgs.toBytes();
+
+		outArgs = IDLArgs.fromBytes(buf);
 
 		LOG.info(outArgs.getArgs().get(0).getValue().toString());
 		Assertions.assertEquals(bigintValue, outArgs.getArgs().get(0).getValue());
@@ -547,8 +551,8 @@ public final class CandidTest {
 		}
 
 	}
-	
-	static void assertValue(String input, String stringValue,  Object value) {
+
+	static void assertValue(String input, String stringValue, Object value) {
 		IDLValue idlValue = IDLValue.create(value);
 
 		try {
@@ -561,7 +565,7 @@ public final class CandidTest {
 		}
 	}
 
-	static void assertValue(String input,String stringValue, Object value, Type type) {
+	static void assertValue(String input, String stringValue, Object value, Type type) {
 		IDLValue idlValue = IDLValue.create(value, type);
 
 		try {
@@ -592,16 +596,14 @@ public final class CandidTest {
 			LOG.info("null" + ":" + input);
 
 		Assertions.assertArrayEquals(buf, bytes);
-		
-		IDLArgs outArgs;
-		
-		if(idlValue.getType() == Type.RECORD || idlValue.getType() == Type.VARIANT)
-		{	
-			IDLType[] idlTypes = {idlValue.getIDLType()};
 
-			outArgs = IDLArgs.fromBytes(bytes, idlTypes);	
-		}
-		else
+		IDLArgs outArgs;
+
+		if (idlValue.getType() == Type.RECORD || idlValue.getType() == Type.VARIANT) {
+			IDLType[] idlTypes = { idlValue.getIDLType() };
+
+			outArgs = IDLArgs.fromBytes(bytes, idlTypes);
+		} else
 			outArgs = IDLArgs.fromBytes(bytes);
 
 		if (value != null)
