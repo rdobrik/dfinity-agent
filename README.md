@@ -215,20 +215,20 @@ String result = hello.peek(value, intValue);
 
 To add Java Dfinity Agent library to your Java project use Maven or Gradle import from Maven Central.
 
-<a href="https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.3/jar">
-https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.3/jar
+<a href="https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.4/jar">
+https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.4/jar
 </href>
 
 ```
 <dependency>
   <groupId>com.scaleton.dfinity</groupId>
   <artifactId>dfinity-agent</artifactId>
-  <version>0.5.3</version>
+  <version>0.5.4</version>
 </dependency>
 ```
 
 ```
-implementation 'com.scaleton.dfinity:dfinity-agent:0.5.3'
+implementation 'com.scaleton.dfinity:dfinity-agent:0.5.4'
 ```
 
 ## Dependencies
