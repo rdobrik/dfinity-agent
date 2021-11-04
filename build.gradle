@@ -13,7 +13,7 @@ plugins {
 
 
 group 'com.scaleton.dfinity'
-version '0.5.4'
+version '0.5.5'
 
 sourceCompatibility = 1.8
 
@@ -55,6 +55,10 @@ dependencies {
 
 	// https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5
 	implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.1'
+	
+	// https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+	implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.9.2'
+	
 	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
 	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.5'
 	
@@ -82,3 +86,4 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
 	testImplementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.32'			
 }
+

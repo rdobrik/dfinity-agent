@@ -40,7 +40,8 @@ import com.scaleton.dfinity.agent.ProxyBuilder;
 import com.scaleton.dfinity.agent.ReplicaTransport;
 import com.scaleton.dfinity.agent.RequestStatusResponse;
 import com.scaleton.dfinity.agent.UpdateBuilder;
-import com.scaleton.dfinity.agent.http.ReplicaHttpTransport;
+import com.scaleton.dfinity.agent.http.ReplicaApacheHttpTransport;
+import com.scaleton.dfinity.agent.http.ReplicaOkHttpTransport;
 import com.scaleton.dfinity.agent.identity.BasicIdentity;
 import com.scaleton.dfinity.agent.identity.Identity;
 import com.scaleton.dfinity.agent.replicaapi.CallRequestContent;
@@ -80,7 +81,16 @@ public class UpdateTest extends MockTest {
 
 			Identity identity = BasicIdentity.fromKeyPair(keyPair);
 
-			transport = ReplicaHttpTransport.create("http://localhost:" + TestProperties.MOCK_PORT);
+			String transportType = TestProperties.TRANSPORT_TYPE;
+
+			switch (transportType) {
+			case "http.ok":
+				transport = ReplicaOkHttpTransport.create("http://localhost:" + TestProperties.MOCK_PORT);
+				break;
+			default:
+				transport = ReplicaApacheHttpTransport.create("http://localhost:" + TestProperties.MOCK_PORT);
+				break;
+			}
 
 			Agent agent = new AgentBuilder().transport(transport).identity(identity).nonceFactory(new NonceFactory())
 					.build();

@@ -88,7 +88,7 @@ public final class Principal implements Cloneable {
 		value = value.replace("-", "");
 
 		Optional<byte[]> bytes = Optional.ofNullable(codec.decode(value));
-
+		
 		if (bytes.isPresent()) {
 			if (bytes.get().length < 4) {
 				throw PrincipalError.create(PrincipalError.PrincipalErrorCode.TEXT_TOO_SMALL);

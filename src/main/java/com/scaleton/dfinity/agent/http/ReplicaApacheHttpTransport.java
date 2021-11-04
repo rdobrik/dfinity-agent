@@ -21,61 +21,94 @@ import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.scaleton.dfinity.agent.AgentError;
 import com.scaleton.dfinity.agent.ReplicaTransport;
 import com.scaleton.dfinity.agent.requestid.RequestId;
 import com.scaleton.dfinity.types.Principal;
 
-public class ReplicaHttpTransport implements ReplicaTransport {
-	static final String DFINITY_CONTENT_TYPE = "application/cbor";
-	static final String API_VERSION_URL_PART = "/api/v2/";
-	static final String STATUS_URL_PART = "status";
-	static final String QUERY_URL_PART = "canister/%s/query";
-	static final String CALL_URL_PART = "canister/%s/call";
-	static final String READ_STATE_URL_PART = "canister/%s/read_state";
+public class ReplicaApacheHttpTransport implements ReplicaTransport {
+	static final int TIMEOUT = 2;
+	static final long CONNECTION_TTL = 1L;
 
-	protected static final Logger LOG = LoggerFactory.getLogger(ReplicaHttpTransport.class);
+	protected static final Logger LOG = LoggerFactory.getLogger(ReplicaApacheHttpTransport.class);
 
 	final IOReactorConfig ioReactorConfig;
 	final CloseableHttpAsyncClient client;
 
 	URI uri;
-	private final ContentType dfinityContentType = ContentType.create(DFINITY_CONTENT_TYPE);
+	private final ContentType dfinityContentType = ContentType.create(ReplicaHttpProperties.DFINITY_CONTENT_TYPE);
 
-	ReplicaHttpTransport(URI url) {
+	ReplicaApacheHttpTransport(URI url) {
 		this.uri = url;
 
-		ioReactorConfig = IOReactorConfig.custom().setSoTimeout(Timeout.ofSeconds(5)).build();
+		ioReactorConfig = IOReactorConfig.custom().setSoTimeout(Timeout.ofSeconds(TIMEOUT)).build();
 
 		client = HttpAsyncClients.custom().setIOReactorConfig(ioReactorConfig).build();
 	}
 
+	ReplicaApacheHttpTransport(URI url, int maxTotal, int maxPerRoute, long connectionTimeToLive, int timeout) {
+		this.uri = url;
+
+		PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
+				.setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT).setConnPoolPolicy(PoolReusePolicy.LIFO)
+				.setConnectionTimeToLive(TimeValue.ofMinutes(connectionTimeToLive)).setMaxConnTotal(maxTotal)
+				.setMaxConnPerRoute(maxPerRoute).build();
+
+		ioReactorConfig = IOReactorConfig.custom().setSoTimeout(Timeout.ofSeconds(timeout)).build();
+
+		client = HttpAsyncClients.custom().setConnectionManager(connectionManager).setIOReactorConfig(ioReactorConfig)
+				.build();
+	}
+
+	ReplicaApacheHttpTransport(URI url, AsyncClientConnectionManager connectionManager, int timeout) {
+		this.uri = url;
+
+		ioReactorConfig = IOReactorConfig.custom().setSoTimeout(Timeout.ofSeconds(timeout)).build();
+
+		client = HttpAsyncClients.custom().setConnectionManager(connectionManager).setIOReactorConfig(ioReactorConfig)
+				.build();
+	}
+
 	public static ReplicaTransport create(String url) throws URISyntaxException {
-		return new ReplicaHttpTransport(new URI(url));
+		return new ReplicaApacheHttpTransport(new URI(url));
+	}
+
+	public static ReplicaTransport create(String url, int maxTotal, int maxPerRoute, long connectionTimeToLive,
+			int timeout) throws URISyntaxException {
+		return new ReplicaApacheHttpTransport(new URI(url), maxTotal, maxPerRoute, connectionTimeToLive, timeout);
+	}
+
+	public static ReplicaTransport create(String url, AsyncClientConnectionManager connectionManager, int timeout)
+			throws URISyntaxException {
+		return new ReplicaApacheHttpTransport(new URI(url), connectionManager, timeout);
 	}
 
 	public CompletableFuture<byte[]> status() {
 
 		HttpHost target = HttpHost.create(uri);
-
-		SimpleHttpRequest httpRequest = SimpleHttpRequests.get(target, API_VERSION_URL_PART + STATUS_URL_PART);
+		
+		SimpleHttpRequest httpRequest = new SimpleHttpRequest(Method.GET,target,ReplicaHttpProperties.API_VERSION_URL_PART + ReplicaHttpProperties.STATUS_URL_PART);
 
 		return this.execute(httpRequest, Optional.empty());
 
@@ -84,35 +117,32 @@ public class ReplicaHttpTransport implements ReplicaTransport {
 	public CompletableFuture<byte[]> query(Principal containerId, byte[] envelope) {
 
 		HttpHost target = HttpHost.create(uri);
-
-		SimpleHttpRequest httpRequest = SimpleHttpRequests.post(target,
-				API_VERSION_URL_PART + String.format(QUERY_URL_PART, containerId.toString()));
-
+		
+		SimpleHttpRequest httpRequest = new SimpleHttpRequest(Method.POST,target,ReplicaHttpProperties.API_VERSION_URL_PART + String.format(ReplicaHttpProperties.QUERY_URL_PART, containerId.toString()));
+				
 		return this.execute(httpRequest, Optional.of(envelope));
 
 	}
-	
+
 	public CompletableFuture<byte[]> call(Principal containerId, byte[] envelope, RequestId requestId) {
 
 		HttpHost target = HttpHost.create(uri);
-
-		SimpleHttpRequest httpRequest = SimpleHttpRequests.post(target,
-				API_VERSION_URL_PART + String.format(CALL_URL_PART, containerId.toString()));
+		
+		SimpleHttpRequest httpRequest = new SimpleHttpRequest(Method.POST,target,ReplicaHttpProperties.API_VERSION_URL_PART + String.format(ReplicaHttpProperties.CALL_URL_PART, containerId.toString()));
 
 		return this.execute(httpRequest, Optional.of(envelope));
 
 	}
-	
+
 	public CompletableFuture<byte[]> readState(Principal containerId, byte[] envelope) {
 
 		HttpHost target = HttpHost.create(uri);
 
-		SimpleHttpRequest httpRequest = SimpleHttpRequests.post(target,
-				API_VERSION_URL_PART + String.format(READ_STATE_URL_PART, containerId.toString()));
+		SimpleHttpRequest httpRequest = new SimpleHttpRequest(Method.POST,target,ReplicaHttpProperties.API_VERSION_URL_PART + String.format(ReplicaHttpProperties.READ_STATE_URL_PART, containerId.toString()));
 
 		return this.execute(httpRequest, Optional.of(envelope));
 
-	}	
+	}
 
 	CompletableFuture<byte[]> execute(SimpleHttpRequest httpRequest, Optional<byte[]> payload) throws AgentError {
 
@@ -126,7 +156,7 @@ public class ReplicaHttpTransport implements ReplicaTransport {
 			if (payload.isPresent())
 				httpRequest.setBody(payload.get(), dfinityContentType);
 			else
-				httpRequest.setHeader(HttpHeaders.CONTENT_TYPE, DFINITY_CONTENT_TYPE);
+				httpRequest.setHeader(HttpHeaders.CONTENT_TYPE, ReplicaHttpProperties.DFINITY_CONTENT_TYPE);
 
 			CompletableFuture<byte[]> response = new CompletableFuture<byte[]>();
 
@@ -135,9 +165,13 @@ public class ReplicaHttpTransport implements ReplicaTransport {
 				@Override
 				public void completed(SimpleHttpResponse httpResponse) {
 					LOG.debug(requestUri + "->" + httpResponse.getCode());
-					LOG.debug(httpResponse.getBody().getBodyText());
 
-					response.complete(httpResponse.getBodyBytes());
+					byte[] bytes = httpResponse.getBodyBytes();
+
+					if (bytes == null)
+						bytes = ArrayUtils.EMPTY_BYTE_ARRAY;
+
+					response.complete(bytes);
 				}
 
 				@Override

@@ -44,7 +44,8 @@ import com.scaleton.dfinity.agent.ByteUtils;
 import com.scaleton.dfinity.agent.ProxyBuilder;
 import com.scaleton.dfinity.agent.QueryBuilder;
 import com.scaleton.dfinity.agent.ReplicaTransport;
-import com.scaleton.dfinity.agent.http.ReplicaHttpTransport;
+import com.scaleton.dfinity.agent.http.ReplicaApacheHttpTransport;
+import com.scaleton.dfinity.agent.http.ReplicaOkHttpTransport;
 import com.scaleton.dfinity.agent.identity.BasicIdentity;
 import com.scaleton.dfinity.agent.identity.Identity;
 import com.scaleton.dfinity.agent.identity.Secp256k1Identity;
@@ -87,7 +88,16 @@ public class QueryTest extends MockTest{
 			
 			identity = Secp256k1Identity.fromPEMFile(path);
 			
-			transport = ReplicaHttpTransport.create("http://localhost:" + TestProperties.MOCK_PORT);
+			String transportType = TestProperties.TRANSPORT_TYPE;
+
+			switch (transportType) {
+			case "http.ok":
+				transport = ReplicaOkHttpTransport.create("http://localhost:" + TestProperties.MOCK_PORT);
+				break;
+			default:
+				transport = ReplicaApacheHttpTransport.create("http://localhost:" + TestProperties.MOCK_PORT);
+				break;
+			}
 
 			Agent agent = new AgentBuilder()
 					.transport(transport)

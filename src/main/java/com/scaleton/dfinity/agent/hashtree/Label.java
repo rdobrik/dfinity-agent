@@ -30,18 +30,12 @@ public final class Label implements Comparable<Label>{
 	public Label(byte[] value)
 	{
 		this.value = value;
-		
-		// TODO remove in the future
-		LOG.debug(this.toString());
 	}
 	
 	public Label(String value)
 	{
 		if(value != null)
 			this.value = value.getBytes();
-		
-		// TODO remove in the future
-		LOG.debug(this.toString());
 	}	
 	
 	public byte[] get()
@@ -65,9 +59,6 @@ public final class Label implements Comparable<Label>{
 	@Override
 	public int compareTo(Label label) {
     	int result = 0;
-    	
-    	// TODO remove in the future
-    	LOG.debug(this.toString() + " compare to " + label.toString());
     	
     	ByteBuffer bytes1 = ByteBuffer.wrap(this.value);
     	ByteBuffer bytes2 = ByteBuffer.wrap(label.value);

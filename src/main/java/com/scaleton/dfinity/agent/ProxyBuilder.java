@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 import com.scaleton.dfinity.agent.annotations.Canister;
 import com.scaleton.dfinity.agent.annotations.EffectiveCanister;
 import com.scaleton.dfinity.agent.annotations.Transport;
-import com.scaleton.dfinity.agent.http.ReplicaHttpTransport;
+import com.scaleton.dfinity.agent.http.ReplicaApacheHttpTransport;
 import com.scaleton.dfinity.agent.identity.AnonymousIdentity;
 import com.scaleton.dfinity.agent.identity.BasicIdentity;
 import com.scaleton.dfinity.agent.identity.Identity;
@@ -159,7 +159,7 @@ public final class ProxyBuilder {
 				com.scaleton.dfinity.agent.annotations.Identity identityAnnotation = agentAnnotation.identity();
 
 				try {
-					ReplicaTransport transport = ReplicaHttpTransport.create(transportAnnotation.url());
+					ReplicaTransport transport = ReplicaApacheHttpTransport.create(transportAnnotation.url());
 
 					switch (identityAnnotation.type()) {
 					case ANONYMOUS:

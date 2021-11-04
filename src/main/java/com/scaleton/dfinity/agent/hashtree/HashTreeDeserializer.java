@@ -36,10 +36,6 @@ public final class HashTreeDeserializer extends JsonDeserializer<HashTree> {
 		ObjectCodec oc = parser.getCodec();
 		JsonNode node = oc.readTree(parser);
 		
-		// TODO change later to debug
-		LOG.info(node.toPrettyString());
-		
-		
 		return new HashTree(HashTreeNode.deserialize(node));
 	}
 

@@ -14,6 +14,8 @@ final class TestProperties extends Properties{
 	private static final long serialVersionUID = 1L;
 	
 	protected static final Logger LOG = LoggerFactory.getLogger(TestProperties.class);
+
+	
 	
 	static String PROPERTIES_FILE_NAME = "test.properties";
 	
@@ -26,6 +28,7 @@ final class TestProperties extends Properties{
 	static String STORE_PATH_PROPERTY = "storePath";
 	static String IC_URL_PROPERTY = "icUrl";
 	static String IC_CANISTER_ID_PROPERTY = "icCanisterId";
+	static String TRANSPORT_TYPE_ID_PROPERTY = "transportType";
 
 	protected static Integer MOCK_PORT = 8777;
 	
@@ -57,10 +60,11 @@ final class TestProperties extends Properties{
 	
 	protected static String CBOR_UPDATE_GREET_RESPONSE_FILE = "cbor.update.greet.response";
 	
-
 	
 	protected static String ED25519_IDENTITY_FILE = "Ed25519_identity.pem";	
 	protected static String SECP256K1_IDENTITY_FILE = "Secp256k1_identity.pem";	
+	
+	protected static  String TRANSPORT_TYPE = "http.apache";
 	
 	static
 	{	 
@@ -78,6 +82,7 @@ final class TestProperties extends Properties{
 			IC_URL = props.getProperty(IC_URL_PROPERTY);
 			IC_CANISTER_ID = props.getProperty(IC_CANISTER_ID_PROPERTY);
 			
+		    TRANSPORT_TYPE = props.getProperty(TRANSPORT_TYPE_ID_PROPERTY,"http.apache");
 		} catch (IOException e) {
 			LOG.error(e.getLocalizedMessage(), e);
 		}

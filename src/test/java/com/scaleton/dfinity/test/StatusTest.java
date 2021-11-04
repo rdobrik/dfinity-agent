@@ -28,7 +28,8 @@ import com.scaleton.dfinity.agent.AgentBuilder;
 import com.scaleton.dfinity.agent.AgentError;
 import com.scaleton.dfinity.agent.ReplicaTransport;
 import com.scaleton.dfinity.agent.Status;
-import com.scaleton.dfinity.agent.http.ReplicaHttpTransport;
+import com.scaleton.dfinity.agent.http.ReplicaApacheHttpTransport;
+import com.scaleton.dfinity.agent.http.ReplicaOkHttpTransport;
 
 public class StatusTest extends MockTest {
 	static final Logger LOG = LoggerFactory.getLogger(StatusTest.class);
@@ -51,8 +52,17 @@ public class StatusTest extends MockTest {
 
 		ReplicaTransport transport;
 		try {
+			String transportType = TestProperties.TRANSPORT_TYPE;
 
-			transport = ReplicaHttpTransport.create("http://localhost:" + TestProperties.MOCK_PORT);
+			switch (transportType) {
+			case "http.ok":
+				transport = ReplicaOkHttpTransport.create("http://localhost:" + TestProperties.MOCK_PORT);
+				break;
+			default:
+				transport = ReplicaApacheHttpTransport.create("http://localhost:" + TestProperties.MOCK_PORT);
+				break;
+			}
+
 			Agent agent = new AgentBuilder().transport(transport).build();
 
 			Status status = agent.status().get();

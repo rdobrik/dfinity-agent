@@ -161,7 +161,7 @@ public final class Agent {
 					try {
 						Status status = objectMapper.readValue(input, Status.class);
 						response.complete(status);
-					} catch (IOException e) {
+					} catch (Exception e) {
 						LOG.debug(e.getLocalizedMessage());
 						response.completeExceptionally(
 								AgentError.create(AgentError.AgentErrorCode.INVALID_CBOR_DATA, e, input));
@@ -258,7 +258,7 @@ public final class Agent {
 					try {
 						QueryResponse queryResponse = objectMapper.readValue(input, QueryResponse.class);
 						response.complete(queryResponse);
-					} catch (IOException e) {
+					} catch (Exception e) {
 						LOG.debug(e.getLocalizedMessage(), e);
 						response.completeExceptionally(AgentError.create(AgentError.AgentErrorCode.MESSAGE_ERROR, e,
 								new String(input, StandardCharsets.UTF_8)));
@@ -416,7 +416,7 @@ public final class Agent {
 							try {
 								Certificate cert = objectMapper.readValue(input.certificate, Certificate.class);
 								response.complete(cert);
-							} catch (IOException e) {
+							} catch (Exception e) {
 								LOG.debug(e.getLocalizedMessage());
 								response.completeExceptionally(
 										AgentError.create(AgentError.AgentErrorCode.INVALID_CBOR_DATA, e, input));

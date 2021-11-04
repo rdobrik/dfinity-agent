@@ -34,6 +34,11 @@ public class PrincipalTest {
 			principal = Principal.fromString("w7x7r-cok77-xa");
 
 			Assertions.assertEquals(principal.toString(),"w7x7r-cok77-xa");	
+			
+			principal = Principal.fromString("22w4c-cyaaa-aaaab-qacka-cai");
+
+			Assertions.assertEquals(principal.toString(), "22w4c-cyaaa-aaaab-qacka-cai");
+			
 
 			ObjectMapper objectMapper = new ObjectMapper(new CBORFactory());
 			objectMapper.registerModule(new Jdk8Module());

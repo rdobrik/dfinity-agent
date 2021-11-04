@@ -19,9 +19,9 @@ package com.scaleton.dfinity.agent.hashtree;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +56,10 @@ public abstract class HashTreeNode {
 				if(node.size() != 3)
 					throw new Error("Invalid Length");
 				try {
-					Label label = new Label(Base64.decodeBase64(node.get(1).asText()));
+					// Incompatible with Android, using custom function instead
+					Label label = new Label(Base64.getDecoder().decode(node.get(1).asText()));	
+					
+					//Label label1 = new Label(Base64.decodeBase64(node.get(1).asText()));
 					//Label label = new Label(Base64.decodeBase64(node.get(1).binaryValue()));
 					
 					HashTreeNode subtree = HashTreeNode.deserialize(node.get(2));
@@ -262,6 +265,7 @@ public abstract class HashTreeNode {
 			}			 
 	 }
 	 
+	 
 	class LookupLabelResult
 	{
 		LookupLabelResultStatus status;
@@ -296,5 +300,7 @@ public abstract class HashTreeNode {
 		;
 		
 	}
+	
+	
 	
 }
