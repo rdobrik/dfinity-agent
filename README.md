@@ -17,7 +17,9 @@ and it's using Dfinity Rust agent as an inspiration, using similar package struc
 https://github.com/dfinity/agent-rs
 </a>
 
-Currently we support query and update (call) operations with primitive types, arrays, option and principal type. Early access to variand and record types. 
+Currently we support query and update (call) operations with primitive types, arrays, option and principal type. Early access to variant and record types. 
+
+Added early support for Android applications (Java/Kotlin)
 
 # License
 
@@ -90,7 +92,12 @@ Security.addProvider(new BouncyCastleProvider());
 ### HTTP Transport
 
 ```
-Transport transport = ReplicaHttpTransport.create("http://localhost:8000");
+Transport transport = ReplicaApacheHttpTransport.create("http://localhost:8000");
+```
+or for Android
+
+```
+Transport transport = ReplicaOkHttpTransport.create("http://localhost:8000");
 ```
 
 ## Agent Class
@@ -215,20 +222,20 @@ String result = hello.peek(value, intValue);
 
 To add Java Dfinity Agent library to your Java project use Maven or Gradle import from Maven Central.
 
-<a href="https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.4/jar">
-https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.4/jar
+<a href="https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.5/jar">
+https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.5/jar
 </href>
 
 ```
 <dependency>
   <groupId>com.scaleton.dfinity</groupId>
   <artifactId>dfinity-agent</artifactId>
-  <version>0.5.4</version>
+  <version>0.5.5</version>
 </dependency>
 ```
 
 ```
-implementation 'com.scaleton.dfinity:dfinity-agent:0.5.4'
+implementation 'com.scaleton.dfinity:dfinity-agent:0.5.5'
 ```
 
 ## Dependencies
@@ -237,6 +244,9 @@ This this is using these open source libraries
 
 ### Apache HTTP Client V5
 To provide HTTP POST and GET operations.
+
+### Ok HTTP Client 
+To provide HTTP POST and GET operations for Android.
 
 ### Jackson CBOR Serializer and Deserializer
 To manage CBOR payloads.
