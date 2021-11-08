@@ -1,5 +1,5 @@
 # dfinity-agent
-Dfinity Java Agent is a set of native Java libriaries to connect remotely to the Internet Computer applications.
+Java Agent for The Internet Computer is a set of native Java libraries to connect remotely to the Internet Computer applications.
 
 <a href="https://dfinity.org/">
 https://dfinity.org/
@@ -224,7 +224,7 @@ To add Java Dfinity Agent library to your Java project use Maven or Gradle impor
 
 <a href="https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.5/jar">
 https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.5/jar
-</href>
+</a>
 
 ```
 <dependency>
