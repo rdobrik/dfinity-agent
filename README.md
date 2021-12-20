@@ -21,6 +21,8 @@ Currently we support query and update (call) operations with primitive types, ar
 
 Added early support for Android applications (Java/Kotlin)
 
+Added support for Java POJO serialization and deserialization
+
 # License
 
 Dfinity Java Agent is available under Apache License 2.0.
@@ -217,25 +219,55 @@ HelloProxy hello = ProxyBuilder.create().getProxy(HelloProxy.class);
 String result = hello.peek(value, intValue);
 ```
 
+Use Dynamic Proxy with POJO Java Object mapped to Candid RECORD type
+
+POJO Java class with Candid annotations
+
+```
+import java.math.BigInteger;
+
+import com.scaleton.dfinity.candid.annotations.Field;
+import com.scaleton.dfinity.candid.annotations.Name;
+import com.scaleton.dfinity.candid.types.Type;
+
+public class Pojo {
+	@Field(Type.BOOL)
+	@Name("bar")
+	public Boolean bar;
+
+	@Field(Type.INT)
+	@Name("foo")
+	public BigInteger foo;
+}
+```
+
+```
+Pojo pojoValue = new Pojo();
+				
+pojoValue.bar = new Boolean(false);
+pojoValue.foo = BigInteger.valueOf(43); 
+				
+Pojo pojoResult = hello.getPojo(pojoValue);
+```
 
 # Downloads / Accessing Binaries
 
 To add Java Dfinity Agent library to your Java project use Maven or Gradle import from Maven Central.
 
-<a href="https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.5/jar">
-https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.5/jar
+<a href="https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.6/jar">
+https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.6/jar
 </a>
 
 ```
 <dependency>
   <groupId>com.scaleton.dfinity</groupId>
   <artifactId>dfinity-agent</artifactId>
-  <version>0.5.5</version>
+  <version>0.5.6</version>
 </dependency>
 ```
 
 ```
-implementation 'com.scaleton.dfinity:dfinity-agent:0.5.5'
+implementation 'com.scaleton.dfinity:dfinity-agent:0.5.6'
 ```
 
 ## Dependencies
