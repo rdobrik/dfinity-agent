@@ -22,6 +22,8 @@ import java.util.Optional;
 
 import com.scaleton.dfinity.candid.Deserialize;
 import com.scaleton.dfinity.candid.Deserializer;
+import com.scaleton.dfinity.candid.ObjectDeserializer;
+import com.scaleton.dfinity.candid.ObjectSerializer;
 import com.scaleton.dfinity.candid.Serializer;
 import com.scaleton.dfinity.candid.types.Type;
 import com.scaleton.dfinity.types.Principal;
@@ -62,6 +64,31 @@ public final class IDLValue implements Deserialize{
 		
 		return idlValue;
 	}
+	
+	public static IDLValue create(Object value, ObjectSerializer objectSerializer)
+	{	
+		return objectSerializer.serialize(value);
+	}
+	
+	public static IDLValue create(Object value, ObjectSerializer objectSerializer, IDLType idlType)
+	{	
+		IDLValue idlValue = objectSerializer.serialize(value);
+		
+		if((idlType.type == Type.VEC || idlType.type == Type.OPT) && idlType.getInnerType() == null)
+			idlValue.idlType.type = idlType.type;
+		else if((idlType.type == Type.RECORD || idlType.type == Type.VARIANT) && idlType.typeMap.isEmpty())
+			idlValue.idlType.type = idlType.type;
+		else
+			idlValue.idlType = idlType;
+		return idlValue;
+	}
+	
+	public static IDLValue create(Object value, ObjectSerializer objectSerializer, Type type)
+	{	
+		IDLType idlType = IDLType.createType(type);
+		
+		return IDLValue.create(value, objectSerializer, idlType);
+	}	
 	
 	public void idlSerialize(Serializer serializer)
 	{
@@ -150,6 +177,23 @@ public final class IDLValue implements Deserialize{
 		}
 		else
 			return null;
+	}
+	
+	public <T> T getValue(IDLType expectedIdlType)
+	{
+		// TODO match with expected type, if RECORD or VARIANT remap hash to named Label
+		if(this.value.isPresent())
+		{
+			T value = (T) this.value.get();
+			return value;
+		}
+		else
+			return null;
+	}
+	
+	public <T> T getValue(ObjectDeserializer objectDeserializer, Class<T> clazz)
+	{
+		return (T) objectDeserializer.deserialize(this, clazz);
 	}
 	
 	public void deserialize(Deserializer deserializer) {

@@ -216,6 +216,41 @@ public class ICTest {
 
 				LOG.info(result);
 				Assertions.assertEquals("Hello, " + value + "!", result);
+				
+				Pojo pojoValue = new Pojo();
+				
+				pojoValue.bar = new Boolean(false);
+				pojoValue.foo = BigInteger.valueOf(43); 
+				
+				ComplexPojo complexPojoValue = new ComplexPojo();
+				complexPojoValue.bar = new Boolean(true);
+				complexPojoValue.foo = BigInteger.valueOf(42);	
+				
+				complexPojoValue.pojo = pojoValue;
+				
+				Pojo pojoResult = hello.getPojo(pojoValue);
+				Assertions.assertEquals(pojoValue,pojoResult);
+				
+				pojoResult = hello.echoOptionPojo(Optional.ofNullable(pojoValue));
+				Assertions.assertEquals(pojoValue,pojoResult);
+				
+				pojoResult = hello.subComplexPojo(complexPojoValue);
+				Assertions.assertEquals(pojoValue,pojoResult);
+				
+				ComplexPojo complexPojoResult = hello.echoComplexPojo(complexPojoValue);	
+				Assertions.assertEquals(complexPojoValue,complexPojoResult);
+				
+				ComplexPojo complexPojoValue2 = new ComplexPojo();
+				complexPojoValue2.bar = new Boolean(true);
+				complexPojoValue2.foo = BigInteger.valueOf(44);	
+				
+				complexPojoValue2.pojo = pojoValue;
+				
+				ComplexPojo[] complexPojoArrayValue = {complexPojoValue,complexPojoValue2};
+				
+				ComplexPojo[] complexPojoArrayResult = hello.echoComplexPojo( complexPojoArrayValue);
+				
+				Assertions.assertArrayEquals(complexPojoArrayValue, complexPojoArrayValue);
 
 			} catch (Throwable ex) {
 				LOG.error(ex.getLocalizedMessage(), ex);

@@ -29,14 +29,14 @@ import com.scaleton.dfinity.candid.types.Opcode;
 import com.scaleton.dfinity.candid.types.Type;
 
 public final class TypeSerialize {
-	Map<Type, Integer> typeMap;
+	Map<IDLType, Integer> typeMap;
 	List<byte[]> typeTable;
 	List<IDLType> args;
 
 	byte[] result;
 
 	TypeSerialize() {
-		this.typeMap = new HashMap<Type, Integer>();
+		this.typeMap = new HashMap<IDLType, Integer>();
 		this.typeTable = new ArrayList<byte[]>();
 		this.args = new ArrayList<IDLType>();
 		this.result = ArrayUtils.EMPTY_BYTE_ARRAY;
@@ -58,7 +58,7 @@ public final class TypeSerialize {
 
 		Integer idx = this.typeTable.size();
 
-		this.typeMap.put(type.getType(), idx);
+		this.typeMap.put(type, idx);
 
 		byte[] buf = ArrayUtils.EMPTY_BYTE_ARRAY;
 
@@ -69,13 +69,13 @@ public final class TypeSerialize {
 			IDLType innerType =actualType.getInnerType();
 			this.buildType(innerType);
 			buf = ArrayUtils.addAll(buf, Leb128.writeSigned(Opcode.OPT.value));
-			buf = ArrayUtils.addAll(buf, this.encode(innerType.getType()));
+			buf = ArrayUtils.addAll(buf, this.encode(innerType));
 			break;
 		case VEC:
 			innerType =actualType.getInnerType();
 			this.buildType(innerType);			
 			buf = ArrayUtils.addAll(buf, Leb128.writeSigned(Opcode.VEC.value));
-			buf = ArrayUtils.addAll(buf, this.encode(innerType.getType()));
+			buf = ArrayUtils.addAll(buf, this.encode(innerType));
 			break;
 		case RECORD:
 			Map<Label,IDLType> typeMap = actualType.getTypeMap();
@@ -91,7 +91,7 @@ public final class TypeSerialize {
 				buf = ArrayUtils.addAll(buf, Leb128.writeUnsigned(label.getId()));
 				
 				IDLType idlType = typeMap.get(label);
-				buf = ArrayUtils.addAll(buf, this.encode(idlType.getType()));			
+				buf = ArrayUtils.addAll(buf, this.encode(idlType));			
 			}
 
 			break;	
@@ -109,7 +109,7 @@ public final class TypeSerialize {
 				buf = ArrayUtils.addAll(buf, Leb128.writeUnsigned(label.getId()));
 				
 				IDLType idlType = typeMap.get(label);
-				buf = ArrayUtils.addAll(buf, this.encode(idlType.getType()));			
+				buf = ArrayUtils.addAll(buf, this.encode(idlType));			
 			}
 
 			break;			
@@ -119,7 +119,8 @@ public final class TypeSerialize {
 		this.typeTable.set(idx, buf);
 	}
 
-	byte[] encode(Type type) {
+	byte[] encode(IDLType idlType) {
+		Type type = idlType.getType();
 		switch (type) {
 		case NULL:
 			return Leb128.writeSigned(Opcode.NULL.value);
@@ -158,7 +159,7 @@ public final class TypeSerialize {
 		case PRINCIPAL:
 			return Leb128.writeSigned(Opcode.PRINCIPAL.value);
 		default:
-			Integer idx = this.typeMap.getOrDefault(type, -1);
+			Integer idx = this.typeMap.getOrDefault(idlType, -1);
 			if (idx != -1)
 				return Leb128.writeSigned(idx);
 			else
@@ -178,7 +179,7 @@ public final class TypeSerialize {
 		byte[] tyEncode = ArrayUtils.EMPTY_BYTE_ARRAY;
 
 		for (IDLType idlType : args) {
-			tyEncode = ArrayUtils.addAll(tyEncode, this.encode(idlType.getType()));
+			tyEncode = ArrayUtils.addAll(tyEncode, this.encode(idlType));
 		}
 
 		this.result = ArrayUtils.addAll(this.result, tyEncode);

@@ -3,7 +3,7 @@ package com.scaleton.dfinity.candid.types;
 import com.scaleton.dfinity.candid.CandidError;
 import com.scaleton.dfinity.candid.IDLUtils;
 
-public class Label {
+public class Label implements Comparable<Label> {
 	Object value;
 	LabelType type;
 	
@@ -76,6 +76,11 @@ public class Label {
 	
 	public enum LabelType{
 		ID,NAMED,UNNAMED;
+	}
+
+	@Override
+	public int compareTo(Label other) {
+		return Integer.compare(this.getId(), other.getId());
 	}
 
 }

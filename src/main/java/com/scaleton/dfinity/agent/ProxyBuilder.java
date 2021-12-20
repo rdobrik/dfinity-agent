@@ -47,11 +47,14 @@ import com.scaleton.dfinity.agent.identity.BasicIdentity;
 import com.scaleton.dfinity.agent.identity.Identity;
 import com.scaleton.dfinity.agent.identity.PemError;
 import com.scaleton.dfinity.agent.identity.Secp256k1Identity;
+import com.scaleton.dfinity.candid.PojoDeserializer;
+import com.scaleton.dfinity.candid.PojoSerializer;
 import com.scaleton.dfinity.candid.annotations.Argument;
 import com.scaleton.dfinity.candid.annotations.Name;
 import com.scaleton.dfinity.candid.annotations.QUERY;
 import com.scaleton.dfinity.candid.annotations.UPDATE;
 import com.scaleton.dfinity.candid.parser.IDLArgs;
+import com.scaleton.dfinity.candid.parser.IDLType;
 import com.scaleton.dfinity.candid.parser.IDLValue;
 import com.scaleton.dfinity.candid.types.Type;
 import com.scaleton.dfinity.types.Principal;
@@ -260,6 +263,8 @@ public final class ProxyBuilder {
 
 				ArrayList<IDLValue> candidArgs = new ArrayList<IDLValue>();
 
+				PojoSerializer pojoSerializer = new PojoSerializer();
+				
 				if (args != null)
 					for (int i = 0; i < args.length; i++) {
 						Object arg = args[i];
@@ -270,12 +275,23 @@ public final class ProxyBuilder {
 								argumentAnnotation = (Argument) annotation;
 							}
 						}
-
-						if (argumentAnnotation != null) {
-							Type type = argumentAnnotation.value();
-							candidArgs.add(IDLValue.create(arg, type));
-						} else
-							candidArgs.add(IDLValue.create(arg));
+						
+						//if(IDLType.isDefaultType(Argument.class))
+						//{	
+						//	if (argumentAnnotation != null) {
+						//		Type type = argumentAnnotation.value();
+						//		candidArgs.add(IDLValue.create(arg, type));
+						//	} else
+						//		candidArgs.add(IDLValue.create(arg));
+						//}
+						//else
+						{
+							if (argumentAnnotation != null) {
+								Type type = argumentAnnotation.value();
+								candidArgs.add(IDLValue.create(arg,pojoSerializer, type));
+							} else
+								candidArgs.add(IDLValue.create(arg, pojoSerializer));
+						}							
 					}
 
 				IDLArgs idlArgs = IDLArgs.create(candidArgs);
@@ -291,6 +307,7 @@ public final class ProxyBuilder {
 
 					CompletableFuture<byte[]> builderResponse = queryBuilder.arg(buf).call();
 
+					PojoDeserializer pojoDeserializer = new PojoDeserializer();
 					try {
 						if (method.getReturnType().equals(CompletableFuture.class)) {
 							CompletableFuture<?> response = new CompletableFuture();
@@ -320,7 +337,7 @@ public final class ProxyBuilder {
 							if (outArgs.getArgs().isEmpty())
 								throw AgentError.create(AgentError.AgentErrorCode.CUSTOM_ERROR, "Missing return value");
 
-							return outArgs.getArgs().get(0).getValue();
+							return outArgs.getArgs().get(0).getValue(pojoDeserializer,method.getReturnType());
 						}
 
 					} catch (Exception e) {

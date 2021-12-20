@@ -17,9 +17,9 @@
 package com.scaleton.dfinity.candid.parser;
 
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 import com.scaleton.dfinity.candid.CandidError;
 import com.scaleton.dfinity.candid.types.Label;
@@ -30,7 +30,7 @@ public final class IDLType {
 	Type type;
 	IDLType innerType;
 	
-	Map<Label,IDLType> typeMap = new HashMap<Label,IDLType>();;
+	Map<Label,IDLType> typeMap = new TreeMap<Label,IDLType>();
 
 
 	void addInnerTypes(Object value) {
@@ -48,7 +48,7 @@ public final class IDLType {
 		else if (value instanceof Map)
 		{
 			
-			this.typeMap = new HashMap<Label,IDLType>();
+			this.typeMap = new TreeMap<Label,IDLType>();
 			
 			for(Object key : ((Map) value).keySet())
 			{
@@ -197,6 +197,22 @@ public final class IDLType {
 		return idlType;
 
 	}
+	
+	public static boolean isDefaultType(Class clazz)
+	{
+		if( Number.class.isAssignableFrom(clazz) ||  Boolean.class.isAssignableFrom(clazz) || String.class.isAssignableFrom(clazz) || Optional.class.isAssignableFrom(clazz) || Map.class.isAssignableFrom(clazz) || Principal.class.isAssignableFrom(clazz) )
+			return true;
+		else
+			return false;
+	}
+	
+	public static boolean isPrimitiveType(Class clazz)
+	{
+		if( Number.class.isAssignableFrom(clazz) ||  Boolean.class.isAssignableFrom(clazz) || String.class.isAssignableFrom(clazz) || Principal.class.isAssignableFrom(clazz) )
+			return true;
+		else
+			return false;
+	}	
 
 	public Type getType() {
 		return this.type;
@@ -210,5 +226,7 @@ public final class IDLType {
 	{
 		return this.typeMap;
 	}
+	
+
 
 }

@@ -1,3 +1,5 @@
+import Principal "mo:base/Principal";
+
 actor {
     stable var name = "Me";
 
@@ -5,6 +7,18 @@ actor {
         bar : Bool;
         foo : Int;
     };
+
+       type ComplexEntry = {
+        bar : Bool;
+        foo : Int;
+        pojo: Entry;
+    }; 
+
+       type ComplexArrayEntry = {
+        bar : [Bool];
+        foo : [Int];
+        pojo: [Entry];
+    };     
 
     public func greet(value : Text) : async Text {
         name := value;
@@ -49,5 +63,33 @@ actor {
 
      public shared query func echoRecord( value : Entry) : async Entry {
         return value;
-    };                   
+    }; 
+
+     public shared query func echoPojo( value : Entry) : async Entry {
+        return value;
+    }; 
+
+     public shared query func echoOptionPojo( value : ?Entry) : async ?Entry {
+        return value;
+    };    
+
+     public shared query func echoComplexPojo( value : ComplexEntry) : async ComplexEntry {
+        return value;
+    }; 
+
+    public shared query func subComplexPojo( value : ComplexEntry) : async Entry {
+        return value.pojo;
+    }; 
+
+     public shared query func echoPojoVec( value : [Entry]) : async [Entry] {
+        return value;
+    }; 
+
+     public shared query func echoComplexPojoVec( value : [ComplexEntry]) : async [ComplexEntry] {
+        return value;
+    }; 
+     public shared query func echoComplexArrayPojo( value : ComplexArrayEntry) : async ComplexArrayEntry {
+        return value;
+    };                                 
 };
+ 

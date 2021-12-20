@@ -48,7 +48,7 @@ import com.scaleton.dfinity.agent.requestid.RequestId;
 import com.scaleton.dfinity.types.Principal;
 
 public class ReplicaApacheHttpTransport implements ReplicaTransport {
-	static final int TIMEOUT = 2;
+	static final int TIMEOUT = 5;
 	static final long CONNECTION_TTL = 1L;
 
 	protected static final Logger LOG = LoggerFactory.getLogger(ReplicaApacheHttpTransport.class);

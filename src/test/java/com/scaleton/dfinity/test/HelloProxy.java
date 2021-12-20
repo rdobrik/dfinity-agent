@@ -1,6 +1,7 @@
 package com.scaleton.dfinity.test;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.scaleton.dfinity.agent.annotations.Agent;
@@ -27,6 +28,25 @@ public interface HelloProxy {
 	@QUERY
 	@Name("echoInt")
 	public BigInteger getInt(BigInteger value);	
+	
+	@QUERY
+	@Name("echoPojo")
+	public Pojo getPojo(Pojo value);
+	
+	@QUERY
+	@Name("echoOptionPojo")
+	public Pojo echoOptionPojo(Optional<Pojo> value);	
+	
+	@QUERY
+	public ComplexPojo echoComplexPojo(ComplexPojo value);
+	
+	@QUERY
+	@Name("subComplexPojo")
+	public Pojo subComplexPojo(ComplexPojo value);
+	
+	@QUERY
+	@Name("echoPojoVec")
+	public ComplexPojo[] echoComplexPojo(ComplexPojo[] value);	
 	
 	@QUERY
 	public CompletableFuture<Double> getFloat(Double value);

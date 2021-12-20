@@ -323,11 +323,11 @@ public final class Deserializer {
 			for (int i = 0; i < len; i++) {
 				Integer ty = this.table.peekCurrentType();
 
-				this.table.currentType.addFirst(ty);
-
 				IDLValue idlValue = this.deserializeAny();
 
 				values.add(idlValue.getValue());
+				
+				this.table.currentType.addFirst(ty);
 			}
 
 			Object[] array = this.toArray(values);
@@ -539,6 +539,15 @@ public final class Deserializer {
 
 		int size = value.size();
 
+		if(ty >= 0)
+		{
+			array = value.toArray(new Object[size]);
+			
+			this.table.currentType.addFirst(ty);
+			
+			return array;
+		}
+		
 		Opcode type = Opcode.from(ty);
 
 		switch (type) {

@@ -130,7 +130,7 @@ public final class TypeTable {
 
 	Integer popCurrentType() {
 
-		Integer type = this.currentType.poll();
+		Integer type = this.currentType.pop();
 
 		if (type != null)
 			return type;
