@@ -19,9 +19,15 @@ https://github.com/dfinity/agent-rs
 
 Currently we support query and update (call) operations with primitive types, arrays, option and principal type. Early access to variant and record types. 
 
+0.5.5
 Added early support for Android applications (Java/Kotlin)
 
+0.5.6
 Added support for Java POJO serialization and deserialization
+
+0.5.7
+Added support for JSON(Jackson), XML(DOM) serialization and deserialization and JDBC(ResultSet) serialization
+
 
 # License
 
@@ -250,25 +256,90 @@ pojoValue.foo = BigInteger.valueOf(43);
 Pojo pojoResult = hello.getPojo(pojoValue);
 ```
 
+## JSON (Jackson) serialization and deserialization
+
+Use JacksonSerializer to serialize Jackson JsonNode or Jackson compatible Pojo class to Candid
+
+```
+JsonNode jsonValue;
+IDLType idlType;
+
+IDLValue idlValue = IDLValue.create(jsonValue, JacksonSerializer.create(idlType));
+List<IDLValue> args = new ArrayList<IDLValue>();
+args.add(idlValue);
+
+IDLArgs idlArgs = IDLArgs.create(args);
+
+byte[] buf = idlArgs.toBytes();
+```
+
+Use JacksonDeserializer to deserialize Candid to Jackson JsonNode or Jackson compatible Pojo class
+
+```
+JsonNode jsonResult = IDLArgs.fromBytes(buf).getArgs().get(0)
+	.getValue(JacksonDeserializer.create(idlValue.getIDLType()), JsonNode.class);
+```
+
+## XML (DOM) serialization and deserialization
+
+Use DOMSerializer to serialize DOM Node to Candid
+
+```
+Node domValue;
+
+IDLValue idlValue = IDLValue.create(domValue,DOMSerializer.create());
+List<IDLValue> args = new ArrayList<IDLValue>();
+args.add(idlValue);
+
+IDLArgs idlArgs = IDLArgs.create(args);
+
+byte[] buf = idlArgs.toBytes();
+```
+
+Use DOMDeserializer to deserialize Candid to DOM Node
+
+```
+DOMDeserializer domDeserializer = DOMDeserializer.create(idlValue.getIDLType()).rootElement("http://scaleton.com/dfinity/candid","data");
+			
+Node domResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(domDeserializer, Node.class);
+```
+
+## JDBC (ResultSet) serialization
+
+Use JDBCSerializer to serialize JDBC ResultSet to Candid
+
+```
+ResultSet result = statement.executeQuery(sql);
+			
+IDLValue idlValue = IDLValue.create(result, JDBCSerializer.create());
+List<IDLValue> args = new ArrayList<IDLValue>();
+args.add(idlValue);
+
+IDLArgs idlArgs = IDLArgs.create(args);
+
+byte[] buf = idlArgs.toBytes();
+```
+
 # Downloads / Accessing Binaries
 
 To add Java Dfinity Agent library to your Java project use Maven or Gradle import from Maven Central.
 
-<a href="https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.6/jar">
-https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.6/jar
+<a href="https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.7/jar">
+https://search.maven.org/artifact/com.scaleton.dfinity/dfinity-agent/0.5.7/jar
 </a>
 
 ```
 <dependency>
   <groupId>com.scaleton.dfinity</groupId>
   <artifactId>dfinity-agent</artifactId>
-  <version>0.5.6</version>
+  <version>0.5.7</version>
 </dependency>
 ```
 
 ```
-implementation 'com.scaleton.dfinity:dfinity-agent:0.5.6'
+implementation 'com.scaleton.dfinity:dfinity-agent:0.5.7'
 ```
+
 
 ## Dependencies
 
