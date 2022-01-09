@@ -18,9 +18,9 @@ package com.scaleton.dfinity.candid;
 
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Optional;
 import java.util.Queue;
 
@@ -66,33 +66,32 @@ public final class TypeTable {
 				ty = bytes.leb128ReadSigned();
 				validateTypeRange(ty, len);
 				buf.add(ty);
-			}else if (ty == Opcode.RECORD.value || ty == Opcode.VARIANT.value) {
+			} else if (ty == Opcode.RECORD.value || ty == Opcode.VARIANT.value) {
 				Integer objLen = bytes.leb128Read();
 				buf.add(objLen);
-				
+
 				Optional<Integer> prevHash = Optional.empty();
-				
-				for (int j = 0; j < objLen; j++)
-				{
+
+				for (int j = 0; j < objLen; j++) {
 					Integer hash = bytes.leb128Read();
-					
-					if(prevHash.isPresent())
-					{
-						if(prevHash.get() >= hash)
-							throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, "Field id collision or not sorted");
+
+					if (prevHash.isPresent()) {
+						if (prevHash.get() >= hash)
+							throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
+									"Field id collision or not sorted");
 					}
-					
-					prevHash = Optional.of(hash);				
+
+					prevHash = Optional.of(hash);
 					buf.add(hash);
 					ty = bytes.leb128ReadSigned();
 					validateTypeRange(ty, len);
 					buf.add(ty);
 				}
+			} else {
+				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM,
+						String.format("Unsupported op_code %d in type table", ty));
 			}
-			else {
-				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("Unsupported op_code %d in type table", ty));
-			}
-			
+
 			table.add(buf);
 		}
 
@@ -169,17 +168,15 @@ public final class TypeTable {
 		if (op >= 0 && op < this.table.size()) {
 			List<Integer> ty = this.table.get(op);
 
-			Iterator<Integer> it = ty.listIterator();
+			ListIterator<Integer> it = ty.listIterator(ty.size());
 
-			while (it.hasNext())
-				this.currentType.add(it.next());
+			while (it.hasPrevious())
+				this.currentType.push(it.previous());
 
 			op = this.popCurrentType();
-
 		}
 
 		return Opcode.from(op);
-
 	}
 
 	// Same logic as parseType, but not poping the currentType queue.

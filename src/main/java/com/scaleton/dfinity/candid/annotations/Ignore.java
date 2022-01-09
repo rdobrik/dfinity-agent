@@ -14,11 +14,18 @@
  * limitations under the License.
 */
 
-package com.scaleton.dfinity.candid;
+package com.scaleton.dfinity.candid.annotations;
 
-import com.scaleton.dfinity.candid.parser.IDLValue;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-public interface ObjectSerializer {
-	
-	public IDLValue serialize(Object value);
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+@Documented
+@Retention(RUNTIME)
+@Target({ FIELD, PARAMETER })
+public @interface Ignore {
 }

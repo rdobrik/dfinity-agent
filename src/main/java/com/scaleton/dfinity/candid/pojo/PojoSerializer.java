@@ -1,4 +1,20 @@
-package com.scaleton.dfinity.candid;
+/*
+ * Copyright 2021 Exilor Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
+package com.scaleton.dfinity.candid.pojo;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -7,6 +23,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import com.scaleton.dfinity.candid.CandidError;
+import com.scaleton.dfinity.candid.ObjectSerializer;
+import com.scaleton.dfinity.candid.annotations.Ignore;
 import com.scaleton.dfinity.candid.annotations.Name;
 import com.scaleton.dfinity.candid.parser.IDLType;
 import com.scaleton.dfinity.candid.parser.IDLValue;
@@ -14,6 +33,11 @@ import com.scaleton.dfinity.candid.types.Label;
 import com.scaleton.dfinity.candid.types.Type;
 
 public class PojoSerializer implements ObjectSerializer {
+	
+	public static PojoSerializer create() {
+		PojoSerializer deserializer = new PojoSerializer();
+		return deserializer; 
+	}	
 
 	@Override
 	public IDLValue serialize(Object value) {
@@ -98,6 +122,9 @@ public class PojoSerializer implements ObjectSerializer {
 		
 		for(Field field : fields)
 		{
+			if(field.isAnnotationPresent(Ignore.class))
+				continue;
+			
 			String name = field.getName();
 			Class typeClass = field.getType();
 			
@@ -149,8 +176,9 @@ public class PojoSerializer implements ObjectSerializer {
 				if(isArray)
 				{
 					Object[] nestedArray = (Object[])item;
-					List<Map<String, Object>> arrayValue = new ArrayList();
+					List<Object> arrayValue = new ArrayList();
 					
+					fieldType = this.getIDLType(typeClass.getComponentType());
 					for(int i = 0; i < nestedArray.length; i++)
 					{
 						Object nestedValue = nestedArray[i];
@@ -158,9 +186,11 @@ public class PojoSerializer implements ObjectSerializer {
 						if(nestedValue != null && Optional.class.isAssignableFrom(nestedValue.getClass()))
 							nestedValue = ((Optional)nestedValue).orElse(null);
 						
-						IDLValue nestedIDLValue = this.getIDLValue(nestedValue);
+						IDLValue nestedIdlValue = this.getIDLValue(nestedValue);
 						
-						arrayValue.add(nestedIDLValue.getValue());
+						fieldType = nestedIdlValue.getIDLType();
+						
+						arrayValue.add(nestedIdlValue.getValue());
 					}
 					
 					fieldType = IDLType.createType(Type.VEC, fieldType);
@@ -173,11 +203,11 @@ public class PojoSerializer implements ObjectSerializer {
 					if(item != null && Optional.class.isAssignableFrom(typeClass))
 						nestedValue = ((Optional)item).orElse(null);
 					
-					IDLValue nestedIDLValue = this.getIDLValue(nestedValue);
+					IDLValue nestedIdlValue = this.getIDLValue(nestedValue);
 					
-					fieldType = nestedIDLValue.getIDLType();
+					fieldType = nestedIdlValue.getIDLType();
 					
-					item = nestedIDLValue.getValue();
+					item = nestedIdlValue.getValue();
 				}
 			}else if(isArray)
 			{
@@ -195,10 +225,85 @@ public class PojoSerializer implements ObjectSerializer {
 				
 		}	
 		
-		IDLType type = IDLType.createType(Type.RECORD, typeMap);
-		IDLValue idlValue = IDLValue.create(valueMap, type);
+		IDLType idlType = IDLType.createType(Type.RECORD, typeMap);
+		IDLValue idlValue = IDLValue.create(valueMap, idlType);
 		
 		return idlValue;
+	}
+	
+	IDLType getIDLType(Class valueClass)
+	{
+		// handle null values
+		if(valueClass == null)
+			return IDLType.createType(Type.NULL);
+		
+		if(IDLType.isDefaultType(valueClass))
+			return IDLType.createType(valueClass);
+			
+		
+		if(Optional.class.isAssignableFrom(valueClass))
+			return IDLType.createType(Type.OPT);
+
+		Map<Label,IDLType> typeMap = new TreeMap<Label,IDLType>();
+
+		Field[] fields = valueClass.getFields();		
+		
+		for(Field field : fields)
+		{
+			if(field.isAnnotationPresent(Ignore.class))
+				continue;
+			
+			String name = field.getName();
+			Class typeClass = field.getType();	
+			
+			IDLType fieldType = this.getIDLType(typeClass);
+			
+			if(field.isAnnotationPresent(Name.class))
+				name = field.getAnnotation(Name.class).value();
+						
+			boolean isArray = typeClass.isArray();
+			boolean isOptional = Optional.class.isAssignableFrom(typeClass);
+			
+			if(field.isAnnotationPresent(com.scaleton.dfinity.candid.annotations.Field.class))
+				fieldType = IDLType.createType(field.getAnnotation(com.scaleton.dfinity.candid.annotations.Field.class).value());
+			else if(IDLType.isDefaultType(typeClass))
+			{
+				// if we do not specify type in annotation and type is one of default
+				typeMap.put(Label.createNamedLabel((String)name), fieldType);	
+				continue;
+			}
+			else
+				fieldType = IDLType.createType(Type.RECORD);
+			
+			// do nested type introspection if type is RECORD		
+			if(fieldType.getType() == Type.RECORD)
+			{
+				
+				// handle RECORD arrays
+				if(isArray)
+				{
+					IDLType nestedIdlType = 
+					fieldType = IDLType.createType(Type.VEC, fieldType);
+				}
+
+			}else if(isArray)
+			{
+				// handle arrays , not record types
+				fieldType = IDLType.createType(Type.VEC, fieldType);
+			}else if(isOptional)
+			{
+				// handle Optional, not record types
+				
+				fieldType = IDLType.createType(Type.OPT, fieldType);
+			}
+			
+			typeMap.put(Label.createNamedLabel((String)name), fieldType);	
+
+		}	
+		
+		IDLType idlType = IDLType.createType(Type.RECORD, typeMap);
+		
+		return idlType;		
 	}
 	
 

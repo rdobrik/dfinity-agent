@@ -47,15 +47,16 @@ import com.scaleton.dfinity.agent.identity.BasicIdentity;
 import com.scaleton.dfinity.agent.identity.Identity;
 import com.scaleton.dfinity.agent.identity.PemError;
 import com.scaleton.dfinity.agent.identity.Secp256k1Identity;
-import com.scaleton.dfinity.candid.PojoDeserializer;
-import com.scaleton.dfinity.candid.PojoSerializer;
 import com.scaleton.dfinity.candid.annotations.Argument;
+import com.scaleton.dfinity.candid.annotations.Ignore;
 import com.scaleton.dfinity.candid.annotations.Name;
 import com.scaleton.dfinity.candid.annotations.QUERY;
 import com.scaleton.dfinity.candid.annotations.UPDATE;
 import com.scaleton.dfinity.candid.parser.IDLArgs;
 import com.scaleton.dfinity.candid.parser.IDLType;
 import com.scaleton.dfinity.candid.parser.IDLValue;
+import com.scaleton.dfinity.candid.pojo.PojoDeserializer;
+import com.scaleton.dfinity.candid.pojo.PojoSerializer;
 import com.scaleton.dfinity.candid.types.Type;
 import com.scaleton.dfinity.types.Principal;
 
@@ -270,11 +271,20 @@ public final class ProxyBuilder {
 						Object arg = args[i];
 						Argument argumentAnnotation = null;
 
+						boolean skip = false;
+						
 						for (Annotation annotation : method.getParameterAnnotations()[i]) {
-							if (Argument.class.isInstance(annotation)) {
-								argumentAnnotation = (Argument) annotation;
+							if(Ignore.class.isInstance(annotation))
+							{
+								skip = true;
+								continue;
 							}
+							if (Argument.class.isInstance(annotation)) 
+								argumentAnnotation = (Argument) annotation;
 						}
+						
+						if(skip) 
+							continue;
 						
 						//if(IDLType.isDefaultType(Argument.class))
 						//{	

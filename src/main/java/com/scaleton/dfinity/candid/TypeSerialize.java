@@ -48,7 +48,7 @@ public final class TypeSerialize {
 	}
 
 	void buildType(IDLType type) {
-		if (typeMap.containsKey(type))
+		if (this.typeMap.containsKey(type))
 			return;
 
 		IDLType actualType = type;

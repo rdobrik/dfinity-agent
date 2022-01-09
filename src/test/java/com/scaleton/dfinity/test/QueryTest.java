@@ -40,7 +40,6 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.scaleton.dfinity.agent.Agent;
 import com.scaleton.dfinity.agent.AgentBuilder;
 import com.scaleton.dfinity.agent.AgentError;
-import com.scaleton.dfinity.agent.ByteUtils;
 import com.scaleton.dfinity.agent.ProxyBuilder;
 import com.scaleton.dfinity.agent.QueryBuilder;
 import com.scaleton.dfinity.agent.ReplicaTransport;
@@ -104,6 +103,7 @@ public class QueryTest extends MockTest{
 					.identity(identity)
 					.build();
 			
+		
 			// test integer argument
 			List<IDLValue> args = new ArrayList<IDLValue>();
 

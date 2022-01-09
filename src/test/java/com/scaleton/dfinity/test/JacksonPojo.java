@@ -2,22 +2,10 @@ package com.scaleton.dfinity.test;
 
 import java.math.BigInteger;
 
-import com.scaleton.dfinity.candid.annotations.Field;
-import com.scaleton.dfinity.candid.annotations.Ignore;
-import com.scaleton.dfinity.candid.annotations.Name;
-import com.scaleton.dfinity.candid.types.Type;
-
-public class Pojo {
-	@Field(Type.BOOL)
-	@Name("bar")
+public class JacksonPojo {
 	public Boolean bar;
 
-	@Field(Type.INT)
-	@Name("foo")
 	public BigInteger foo;
-	
-	@Ignore
-	public String dummy;
 	
 	// Just for testing purposes, JUnit uses equals
 	@Override
@@ -28,7 +16,7 @@ public class Pojo {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Pojo other = (Pojo) obj;
+		JacksonPojo other = (JacksonPojo) obj;
 		if (bar == null) {
 			if (other.bar != null)
 				return false;

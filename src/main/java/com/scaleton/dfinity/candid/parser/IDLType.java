@@ -42,8 +42,17 @@ public final class IDLType {
 				this.innerType = IDLType.createType(((Optional) value).get());
 		}
 		else if (value.getClass().isArray()) {
-			Class clazz = ((Object[]) value).getClass().getComponentType();
-			this.innerType = IDLType.createType(clazz);
+			//Class clazz = ((Object[]) value).getClass().getComponentType();
+			
+			Object[] arrayValue = (Object[]) value;
+			
+			if(arrayValue.length > 0)
+				this.innerType = IDLType.createType(arrayValue[0]);
+			else
+			{	
+				Class clazz = value.getClass().getComponentType();
+				this.innerType = IDLType.createType(clazz);
+			}
 		}
 		else if (value instanceof Map)
 		{
@@ -189,7 +198,9 @@ public final class IDLType {
 			idlType.type = Type.OPT;
 		else if (clazz.isArray())
 			idlType.type = Type.VEC;
-		else if (clazz == Principal.class)
+		else if (Map.class.isAssignableFrom(clazz))
+			idlType.type = Type.RECORD;			
+		else if (clazz == Optional.class)
 			idlType.type = Type.PRINCIPAL;
 
 		idlType.addInnerType(clazz);

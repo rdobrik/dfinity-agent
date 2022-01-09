@@ -7,28 +7,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.opentest4j.AssertionFailedError;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.scaleton.dfinity.agent.ByteUtils;
 import com.scaleton.dfinity.candid.CandidError;
-import com.scaleton.dfinity.candid.PojoDeserializer;
-import com.scaleton.dfinity.candid.PojoSerializer;
 import com.scaleton.dfinity.candid.parser.IDLArgs;
 import com.scaleton.dfinity.candid.parser.IDLType;
 import com.scaleton.dfinity.candid.parser.IDLValue;
 import com.scaleton.dfinity.candid.types.Type;
 import com.scaleton.dfinity.types.Principal;
 
-public final class CandidTest {
-	static final Logger LOG = LoggerFactory.getLogger(CandidTest.class);
-
+public final class CandidTest extends CandidAssert{
+	
+	static
+	{
+		LOG = LoggerFactory.getLogger(CandidTest.class);
+	}
+	
 	@Test
 	public void test() {
 		// testing record, move it after
@@ -228,123 +224,28 @@ public final class CandidTest {
 
 		assertValue("DIDL\\01\\6c\\01\\01\\7c\\01\\00\\2a", intMapValue);
 		
-		// Record POJO
+		// Record with VEC
 		
-		Pojo pojoValue = new Pojo();
+		mapValue = new HashMap<String, Object>();
 		
-		pojoValue.bar = new Boolean(true);
-		pojoValue.foo = BigInteger.valueOf(42);
+		BigInteger[] nestedArray = { new BigInteger("100000000"), new BigInteger("200000000"),
+				new BigInteger("300000000") };
 		
-		IDLValue idlValue = IDLValue.create(pojoValue, new PojoSerializer());
+		mapValue.put("foo",  nestedArray);
+		
+		IDLValue idlValue = IDLValue.create(mapValue);
 		
 		List<IDLValue> args = new ArrayList<IDLValue>();
+		args.add(idlValue);
+		
+		args = new ArrayList<IDLValue>();
 		args.add(idlValue);
 
 		IDLArgs idlArgs = IDLArgs.create(args);
 		
-		byte[] buf = idlArgs.toBytes();
-		
-		assertBytes("DIDL\\01\\6c\\02\\d3\\e3\\aa\\02\\7e\\86\\8e\\b7\\02\\7c\\01\\00\\01\\2a", buf);
+		byte[] buf = idlArgs.toBytes();		
 		
 		IDLArgs outArgs = IDLArgs.fromBytes(buf);
-		
-		Pojo pojoResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(new PojoDeserializer(), Pojo.class);
-		
-		Assertions.assertEquals( pojoValue, pojoResult);
-		// Pojo OPT
-		Optional<Pojo> optionalPojoValue = Optional.of(pojoValue);
-		idlValue = IDLValue.create(optionalPojoValue, new PojoSerializer());
-		
-		args = new ArrayList<IDLValue>();
-		args.add(idlValue);
-
-		idlArgs = IDLArgs.create(args);
-		
-		buf = idlArgs.toBytes();		
-		
-		Pojo optionalPojoResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(new PojoDeserializer(),Pojo.class);
-
-		Assertions.assertEquals( pojoValue, optionalPojoResult);
-		
-		// Pojo Array VEC
-		
-		Pojo pojoValue2 = new Pojo();
-		
-		pojoValue2.bar = new Boolean(false);
-		pojoValue2.foo = BigInteger.valueOf(43); 
-		
-		Pojo[] pojoArray = {pojoValue, pojoValue2};
-		
-		idlValue = IDLValue.create(pojoArray, new PojoSerializer());
-		
-		args = new ArrayList<IDLValue>();
-		args.add(idlValue);
-
-		idlArgs = IDLArgs.create(args);
-		
-		buf = idlArgs.toBytes();	
-		
-		Pojo[] pojoArrayResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(new PojoDeserializer(), Pojo[].class);
-
-		Assertions.assertArrayEquals(pojoArray, pojoArrayResult);
-		// Complex RECORD Pojo
-		
-		ComplexPojo complexPojoValue = new ComplexPojo();
-		complexPojoValue.bar = new Boolean(true);
-		complexPojoValue.foo = BigInteger.valueOf(42);	
-		
-		complexPojoValue.pojo = pojoValue2;
-
-		idlValue = IDLValue.create(complexPojoValue, new PojoSerializer());
-		
-		args = new ArrayList<IDLValue>();
-		args.add(idlValue);
-
-		idlArgs = IDLArgs.create(args);
-		
-		buf = idlArgs.toBytes();
-		
-		int[] unsignedBuf =ByteUtils.toUnsignedIntegerArray(buf);
-		
-		IDLType[] idlTypes = { idlValue.getIDLType() };
-		
-		outArgs = IDLArgs.fromBytes(buf, idlTypes);
-		
-		ComplexPojo complexPojoResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(new PojoDeserializer(), ComplexPojo.class);
-		
-		Assertions.assertEquals( complexPojoValue, complexPojoResult);
-		
-		// Complex Array RECORD Pojo
-		
-		ComplexArrayPojo complexArrayPojoValue = new ComplexArrayPojo();
-		
-		Boolean[] barArray = { new Boolean(true),new Boolean(false)};
-		complexArrayPojoValue.bar = barArray;
-		
-		BigInteger[] fooArray = { new BigInteger("100000000"), new BigInteger("200000000"),
-				new BigInteger("300000000") };
-		complexArrayPojoValue.foo = fooArray;	
-		
-		
-		Pojo[] pojoArray2 = {pojoValue, pojoValue2};
-		
-		complexArrayPojoValue.pojo = pojoArray2;
-
-		idlValue = IDLValue.create(complexArrayPojoValue, new PojoSerializer());
-		
-		args = new ArrayList<IDLValue>();
-		args.add(idlValue);
-
-		idlArgs = IDLArgs.create(args);
-		
-		buf = idlArgs.toBytes();
-		
-///		ComplexArrayPojo complexPojoArrayResult = IDLArgs.fromBytes(buf).getArgs().get(0).getValue(new PojoDeserializer(), ComplexArrayPojo.class);
-
-		
-//		IDLType[] complexIdlTypes = { idlValue.getIDLType() };
-		
-//		outArgs = IDLArgs.fromBytes(buf, complexIdlTypes);
 
 		// Variant
 
@@ -617,192 +518,5 @@ public final class CandidTest {
 		LOG.info(outArgs.getArgs().get(4).getValue().toString());
 		Assertions.assertEquals(floatValue, outArgs.getArgs().get(4).getValue());
 	}
-
-	static byte[] getBytes(String input) throws DecoderException {
-		if (input == null)
-			throw new Error("Invalid input value");
-
-		if (input.isEmpty())
-			return input.getBytes();
-
-		int i = input.indexOf('\\');
-
-		if (i < 0)
-			return input.getBytes();
-
-		String prefix = input.substring(0, i);
-
-		String data = input.substring(input.indexOf('\\')).replace("\\", "");
-
-		return ArrayUtils.addAll(prefix.getBytes(), Hex.decodeHex(data));
-	}
-
-	static byte[] getBytes(String input, String value) throws DecoderException {
-		if (value == null)
-			return getBytes(input);
-		else
-			return ArrayUtils.addAll(getBytes(input), value.getBytes());
-	}
 	
-	static void assertBytes(String input, byte[] value) {
-		try {
-			byte[] bytes = getBytes(input);
-			
-			Assertions.assertArrayEquals(bytes,value);
-
-		} catch (DecoderException e) {
-			LOG.error(e.getLocalizedMessage(), e);
-			Assertions.fail(e.getMessage());
-		}
-	}	
-
-	static void assertValue(String input, Object value) {
-		IDLValue idlValue = IDLValue.create(value);
-
-		try {
-			byte[] bytes = getBytes(input);
-			assertValue(bytes, input, value, idlValue);
-
-		} catch (DecoderException e) {
-			LOG.error(e.getLocalizedMessage(), e);
-			Assertions.fail(e.getMessage());
-		}
-	}
-
-	static void assertValue(String input, Object value, Type type) {
-		IDLValue idlValue = IDLValue.create(value, type);
-
-		try {
-
-			byte[] bytes = getBytes(input);
-
-			assertValue(bytes, input, value, idlValue);
-
-		} catch (DecoderException e) {
-			LOG.error(e.getLocalizedMessage(), e);
-			Assertions.fail(e.getMessage());
-		}
-
-	}
-
-	static void assertValue(String input, String stringValue, Object value) {
-		IDLValue idlValue = IDLValue.create(value);
-
-		try {
-			byte[] bytes = getBytes(input, stringValue);
-			assertValue(bytes, input, value, idlValue);
-
-		} catch (DecoderException e) {
-			LOG.error(e.getLocalizedMessage(), e);
-			Assertions.fail(e.getMessage());
-		}
-	}
-
-	static void assertValue(String input, String stringValue, Object value, Type type) {
-		IDLValue idlValue = IDLValue.create(value, type);
-
-		try {
-
-			byte[] bytes = getBytes(input, stringValue);
-
-			assertValue(bytes, input, value, idlValue);
-
-		} catch (DecoderException e) {
-			LOG.error(e.getLocalizedMessage(), e);
-			Assertions.fail(e.getMessage());
-		}
-
-	}
-
-	static void assertValue(byte[] bytes, String input, Object value, IDLValue idlValue) {
-		List<IDLValue> args = new ArrayList<IDLValue>();
-
-		args.add(idlValue);
-
-		IDLArgs idlArgs = IDLArgs.create(args);
-
-		byte[] buf = idlArgs.toBytes();
-
-		if (value != null)
-			LOG.info(value.toString() + ":" + input);
-		else
-			LOG.info("null" + ":" + input);
-
-		Assertions.assertArrayEquals(buf, bytes);
-
-		IDLArgs outArgs;
-
-		if (idlValue.getType() == Type.RECORD || idlValue.getType() == Type.VARIANT) {
-			IDLType[] idlTypes = { idlValue.getIDLType() };
-
-			outArgs = IDLArgs.fromBytes(bytes, idlTypes);
-		} else
-			outArgs = IDLArgs.fromBytes(bytes);
-
-		if (value != null)
-			LOG.info(input + ":" + value.toString());
-		else
-			LOG.info(input + ":" + "null");
-
-		Assertions.assertEquals(value, outArgs.getArgs().get(0).getValue());
-
-	}
-
-	static void testEncode(String input, Object value) {
-		try {
-			testEncode(getBytes(input), value);
-		} catch (DecoderException e) {
-			LOG.error(e.getLocalizedMessage(), e);
-			Assertions.fail(e.getMessage());
-		}
-	}
-
-	static void testEncode(byte[] bytes, Object value) {
-		IDLValue idlValue = IDLValue.create(value);
-
-		testEncode(bytes, idlValue);
-	}
-
-	static void testEncode(byte[] bytes, Object value, Type type) {
-		IDLValue idlValue = IDLValue.create(value, type);
-
-		testEncode(bytes, idlValue);
-
-	}
-
-	static void testEncode(byte[] bytes, IDLValue idlValue) {
-		List<IDLValue> args = new ArrayList<IDLValue>();
-
-		args.add(idlValue);
-
-		IDLArgs idlArgs = IDLArgs.create(args);
-
-		byte[] buf = idlArgs.toBytes();
-
-		Assertions.assertArrayEquals(buf, bytes);
-	}
-
-	static void testDecode(Object value, byte[] bytes) {
-		IDLArgs outArgs = IDLArgs.fromBytes(bytes);
-
-		Assertions.assertEquals(value, outArgs.getArgs().get(0).getValue());
-
-	}
-
-	static void assertFail(String input, Class exClass, String message) {
-		try {
-			byte[] bytes = getBytes(input);
-			IDLArgs outArgs = IDLArgs.fromBytes(bytes);
-			Assertions.fail(message);
-		} catch (DecoderException e) {
-			LOG.error(e.getLocalizedMessage(), e);
-			Assertions.fail(e.getMessage());
-		} catch (AssertionFailedError e) {
-			throw e;
-		} catch (Throwable t) {
-			LOG.info(t.getLocalizedMessage());
-			LOG.info(message);
-			Assertions.assertTrue(t.getClass() == exClass);
-		}
-	}
 }

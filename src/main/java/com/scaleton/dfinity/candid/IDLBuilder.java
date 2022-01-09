@@ -51,8 +51,7 @@ public final class IDLBuilder {
 		try {
 			this.serialize(os);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw CandidError.create(CandidError.CandidErrorCode.PARSE, e, e.getLocalizedMessage());
 		}
 		
 		return os.toByteArray();

@@ -20,7 +20,6 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -382,9 +381,9 @@ public final class Deserializer {
 				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("hash collision %d", hash));
 		}
 
-		Map<Object, Object> map = new HashMap<Object, Object>();
+		Map<Object, Object> map = new TreeMap<Object, Object>();
 		
-		Map<Integer, Label> labels = new HashMap<Integer, Label>();
+		Map<Integer, Label> labels = new TreeMap<Integer, Label>();
 		
 		if(typeMap.isPresent())
 			for(Label label : typeMap.get().keySet())
@@ -454,7 +453,7 @@ public final class Deserializer {
 				throw CandidError.create(CandidError.CandidErrorCode.CUSTOM, String.format("hash collision %d", hash));
 		}
 		
-		Map<Object, Object> map = new HashMap<Object, Object>();
+		Map<Object, Object> map = new TreeMap<Object, Object>();
 		
 		int idx = this.input.leb128Read();
 
