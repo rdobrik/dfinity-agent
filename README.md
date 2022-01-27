@@ -1,4 +1,6 @@
 # dfinity-agent
+# ! This project has been moved to <a href="https://github.com/ic4j/ic4j-agent">https://github.com/ic4j/ic4j-agent</a> . Candid classes are now in the separate project <a href="https://github.com/ic4j/ic4j-candid">https://github.com/ic4j/ic4j-candid</a> .Please update your dependencies, we also renamed package name to org.ic4j. Names of classes and interfaces are same. 
+
 Java Agent for The Internet Computer is a set of native Java libraries to connect remotely to the Internet Computer applications.
 
 <a href="https://dfinity.org/">
@@ -100,12 +102,12 @@ Security.addProvider(new BouncyCastleProvider());
 ### HTTP Transport
 
 ```
-Transport transport = ReplicaApacheHttpTransport.create("http://localhost:8000");
+ReplicaTransport transport = ReplicaApacheHttpTransport.create("http://localhost:8000");
 ```
 or for Android
 
 ```
-Transport transport = ReplicaOkHttpTransport.create("http://localhost:8000");
+ReplicaTransport transport = ReplicaOkHttpTransport.create("http://localhost:8000");
 ```
 
 ## Agent Class
